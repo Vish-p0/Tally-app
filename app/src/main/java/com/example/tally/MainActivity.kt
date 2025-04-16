@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var ivLogo: ImageView
     private lateinit var ivCoin1: ImageView
-    private lateinit var ivCoin2: ImageView
     private lateinit var ivCoin3: ImageView
     private lateinit var tvAppName: TextView
     private lateinit var circleView: View
