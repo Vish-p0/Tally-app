@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TALLY</string>
+    <string name="app_logo">Logo</string>
+    <string name="coin">Coin</string>
+    <string name="welcome_message">Welcome to Tally!\nTrack  Save\nGrow</string>
+    <string name="login">Log In</string>
+    <string name="signup">Sign Up</string>
+</resources>
