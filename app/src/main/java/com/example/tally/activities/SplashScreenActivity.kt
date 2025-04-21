@@ -1,4 +1,4 @@
-package com.example.tally
+package com.example.tally.activities
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -17,9 +17,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
+import com.example.tally.R
 import kotlin.math.hypot
 
-class MainActivity : AppCompatActivity() {
+class SplashScreenActivity : AppCompatActivity() {
 
     private lateinit var ivLogo: ImageView
     private lateinit var ivCoin1: ImageView
@@ -29,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_splash_screen)
 
         // Initialize views
         ivLogo = findViewById(R.id.ivLogo)

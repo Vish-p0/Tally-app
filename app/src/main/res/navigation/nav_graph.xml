@@ -1,0 +1,21 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.tally.fragments.HomeFragment" />
+    <fragment
+        android:id="@+id/analyticsFragment"
+        android:name="com.example.tally.fragments.AnalyticsFragment" />
+    <fragment
+        android:id="@+id/transactionsFragment"
+        android:name="com.example.tally.fragments.TransactionsFragment" />
+    <fragment
+        android:id="@+id/categoriesFragment"
+        android:name="com.example.tally.fragments.CategoriesFragment" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.tally.fragments.ProfileFragment" />
+
+</navigation>

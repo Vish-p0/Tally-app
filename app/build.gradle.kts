@@ -8,7 +8,7 @@ android {
     compileSdk = 35
 
     buildFeatures {
-        viewBinding = true // Enable View Binding
+        viewBinding = true // Required for fragments and UI components
     }
 
     defaultConfig {
@@ -40,13 +40,33 @@ android {
 }
 
 dependencies {
-
+    // AndroidX Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.swiperefreshlayout)
+
+    // Navigation Component
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    // Lifecycle & ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    // Charting Library (MPAndroidChart)
+    implementation(libs.mpandroidchart)
+
+    // JSON Serialization (Gson)
+    implementation(libs.gson)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Firebase Crashlytics (optional)
+    implementation(libs.firebase.crashlytics.buildtools)
 }

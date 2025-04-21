@@ -1,0 +1,50 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Total Balance -->
+        <TextView
+            android:id="@+id/tvTotalBalance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total Balance: $0.00"
+            android:textSize="24sp" />
+
+        <!-- Budget Progress -->
+        <ProgressBar
+            android:id="@+id/progressBudget"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:max="100" />
+
+        <TextView
+            android:id="@+id/tvBudgetStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Spent $0 of $1000" />
+
+        <!-- Recent Transactions -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+        <!-- Add Transaction Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddTransaction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:contentDescription="TODO"
+            android:src="@drawable/more" />
+
+    </LinearLayout>
+</ScrollView>
