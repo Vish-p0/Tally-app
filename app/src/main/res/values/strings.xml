@@ -5,4 +5,18 @@
     <string name="welcome_message">Welcome to Tally!\nTrack  Save\nGrow</string>
     <string name="login">Log In</string>
     <string name="signup">Sign Up</string>
+    <string name="welcome">Welcome</string>
+    <string name="user_or_email">Username Or Email</string>
+    <string name="example_email">example@example.com</string>
+    <string name="password">Password</string>
+    <string name="example_password">••••••••</string>
+    <string name="view_password">View Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="use">Use </string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="access"> To Access</string>
+    <string name="or_sign">or sign up with</string>
+    <string name="facebook">Facebook</string>
+    <string name="google">Google</string>
+    <string name="no_account">Don\'t have an account? </string>
 </resources>

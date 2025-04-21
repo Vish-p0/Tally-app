@@ -4,4 +4,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="primary">#FF103713</color>
     <color name="background">#FFF1FFF3</color>
+    <color name="link">#FF2E86DE</color>
+    <color name="button_background">#FF4CD6A7</color>
+    <color name="light_grey">#FFA0B0A8</color>
+    <color name="light_green">#FFDFF7E2</color>
 </resources>
