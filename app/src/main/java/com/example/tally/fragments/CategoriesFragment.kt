@@ -1,13 +1,19 @@
 package com.example.tally.fragments
 
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputFilter
+import android.text.Spanned
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -17,15 +23,26 @@ import com.example.tally.databinding.FragmentCategoriesBinding
 import com.example.tally.models.Category
 import com.example.tally.models.Transaction
 import com.example.tally.viewmodels.FinanceViewModel
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.button.MaterialButton
 import java.util.UUID
+import java.util.regex.Pattern
 
 class CategoriesFragment : Fragment() {
 
     private var _binding: FragmentCategoriesBinding? = null
     private val binding get() = _binding!!
     private val viewModel: FinanceViewModel by activityViewModels()
-    private lateinit var categoryAdapter: CategoryTileAdapter
+    
+    private lateinit var incomeCategoryAdapter: CategoryTileAdapter
+    private lateinit var expenseCategoryAdapter: CategoryTileAdapter
+    
+    private enum class CategoryFilter {
+        ALL, INCOME, EXPENSE
+    }
+    
+    private var currentFilter = CategoryFilter.ALL
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,26 +55,100 @@ class CategoriesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerView()
-        setupListeners()
+        setupRecyclerViews()
+        setupTabListeners()
+        setupButtonListeners()
         updateFinancialData()
         observeCategories()
     }
     
-    private fun setupRecyclerView() {
-        categoryAdapter = CategoryTileAdapter(emptyList()) { category ->
+    private fun setupRecyclerViews() {
+        // Income categories adapter
+        incomeCategoryAdapter = CategoryTileAdapter(emptyList()) { category ->
             showCategoryOptions(category)
         }
-        binding.rvCategories.adapter = categoryAdapter
+        binding.rvIncomeCategories.adapter = incomeCategoryAdapter
+        
+        // Expense categories adapter
+        expenseCategoryAdapter = CategoryTileAdapter(emptyList()) { category ->
+            showCategoryOptions(category)
+        }
+        binding.rvExpenseCategories.adapter = expenseCategoryAdapter
+    }
+    
+    private fun setupTabListeners() {
+        // Set up the filter tabs click listeners
+        binding.tabAll.setOnClickListener {
+            updateFilter(CategoryFilter.ALL)
+        }
+        
+        binding.tabIncome.setOnClickListener {
+            updateFilter(CategoryFilter.INCOME)
+        }
+        
+        binding.tabExpense.setOnClickListener {
+            updateFilter(CategoryFilter.EXPENSE)
+        }
     }
 
-    private fun setupListeners() {
+    private fun setupButtonListeners() {
         binding.btnBack.setOnClickListener {
             findNavController().navigateUp()
         }
         
         binding.btnNotification.setOnClickListener {
             Toast.makeText(requireContext(), "Notifications", Toast.LENGTH_SHORT).show()
+        }
+        
+        binding.fabAddCategory.setOnClickListener {
+            showAddCategoryDialog()
+        }
+    }
+    
+    private fun updateFilter(filter: CategoryFilter) {
+        currentFilter = filter
+        
+        // Reset all tabs to inactive state
+        resetTabsToInactive()
+        
+        // Update the selected tab's appearance
+        val selectedTab = when (filter) {
+            CategoryFilter.ALL -> binding.tabAll
+            CategoryFilter.INCOME -> binding.tabIncome
+            CategoryFilter.EXPENSE -> binding.tabExpense
+        }
+        selectedTab.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.lime_green))
+        (selectedTab.getChildAt(0) as TextView).setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
+        (selectedTab.getChildAt(0) as TextView).setTypeface(null, Typeface.BOLD)
+        
+        // Update visibility of category sections based on the filter
+        updateCategorySectionsVisibility()
+    }
+    
+    private fun resetTabsToInactive() {
+        val tabs = listOf(binding.tabAll, binding.tabIncome, binding.tabExpense)
+        
+        tabs.forEach { tab ->
+            tab.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+            (tab.getChildAt(0) as TextView).setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
+            (tab.getChildAt(0) as TextView).setTypeface(null, Typeface.NORMAL)
+        }
+    }
+    
+    private fun updateCategorySectionsVisibility() {
+        when (currentFilter) {
+            CategoryFilter.ALL -> {
+                binding.incomeCategoriesSection.visibility = View.VISIBLE
+                binding.expenseCategoriesSection.visibility = View.VISIBLE
+            }
+            CategoryFilter.INCOME -> {
+                binding.incomeCategoriesSection.visibility = View.VISIBLE
+                binding.expenseCategoriesSection.visibility = View.GONE
+            }
+            CategoryFilter.EXPENSE -> {
+                binding.incomeCategoriesSection.visibility = View.GONE
+                binding.expenseCategoriesSection.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -82,7 +173,13 @@ class CategoriesFragment : Fragment() {
 
     private fun observeCategories() {
         viewModel.categories.observe(viewLifecycleOwner) { categories ->
-            categoryAdapter.updateCategories(categories)
+            // Split categories by type
+            val incomeCategories = categories.filter { it.type == "Income" }
+            val expenseCategories = categories.filter { it.type == "Expense" }
+            
+            // Update the adapters
+            incomeCategoryAdapter.updateCategories(incomeCategories)
+            expenseCategoryAdapter.updateCategories(expenseCategories)
         }
     }
 
@@ -119,58 +216,97 @@ class CategoriesFragment : Fragment() {
     private fun showAddCategoryDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_category, null)
         val nameInput = dialogView.findViewById<EditText>(R.id.nameInput)
-        val typeInput = dialogView.findViewById<EditText>(R.id.typeInput)
         val emojiInput = dialogView.findViewById<EditText>(R.id.emojiInput)
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Add Category")
+        val radioGroupType = dialogView.findViewById<RadioGroup>(R.id.categoryTypeRadioGroup)
+        val radioIncome = dialogView.findViewById<RadioButton>(R.id.radioIncome)
+        
+        // Set input filters
+        nameInput.filters = arrayOf(InputFilter.LengthFilter(20))
+        emojiInput.filters = arrayOf(InputFilter.LengthFilter(2))
+        
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
-            .setPositiveButton("Add") { _, _ ->
-                val name = nameInput.text.toString()
-                val type = typeInput.text.toString()
-                val emoji = emojiInput.text.toString()
-                if (name.isNotBlank() && type in listOf("Income", "Expense") && emoji.isNotBlank()) {
-                    val newCategory = Category(
-                        id = UUID.randomUUID().toString(),
-                        name = name,
-                        type = type,
-                        emoji = emoji
-                    )
-                    viewModel.addCategory(newCategory)
-                } else {
-                    Toast.makeText(requireContext(), "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
-                }
+            .create()
+            
+        // Set up button click listeners
+        dialogView.findViewById<MaterialButton>(R.id.btnSave).setOnClickListener {
+            val name = nameInput.text.toString().trim()
+            val emoji = emojiInput.text.toString()
+            val type = if (radioIncome.isChecked) "Income" else "Expense"
+            
+            if (name.isNotBlank() && emoji.isNotBlank()) {
+                val newCategory = Category(
+                    id = UUID.randomUUID().toString(),
+                    name = name,
+                    type = type,
+                    emoji = emoji
+                )
+                viewModel.addCategory(newCategory)
+                dialog.dismiss()
+            } else if (name.isBlank()) {
+                Toast.makeText(requireContext(), "Please enter a category name", Toast.LENGTH_SHORT).show()
+            } else if (emoji.isBlank()) {
+                Toast.makeText(requireContext(), "Please select an emoji", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+        
+        dialogView.findViewById<MaterialButton>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
 
     private fun showEditCategoryDialog(category: Category) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_category, null)
         val nameInput = dialogView.findViewById<EditText>(R.id.nameInput)
-        val typeInput = dialogView.findViewById<EditText>(R.id.typeInput)
         val emojiInput = dialogView.findViewById<EditText>(R.id.emojiInput)
-
+        val radioGroupType = dialogView.findViewById<RadioGroup>(R.id.categoryTypeRadioGroup)
+        val radioIncome = dialogView.findViewById<RadioButton>(R.id.radioIncome)
+        val radioExpense = dialogView.findViewById<RadioButton>(R.id.radioExpense)
+        
+        // Set input filters
+        nameInput.filters = arrayOf(InputFilter.LengthFilter(20))
+        emojiInput.filters = arrayOf(InputFilter.LengthFilter(2))
+        
+        // Set values from the existing category
         nameInput.setText(category.name)
-        typeInput.setText(category.type)
         emojiInput.setText(category.emoji)
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Edit Category")
+        if (category.type == "Income") {
+            radioIncome.isChecked = true
+        } else {
+            radioExpense.isChecked = true
+        }
+        
+        // Update title
+        dialogView.findViewById<TextView>(R.id.dialogTitle)?.text = "Edit Category"
+        
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val name = nameInput.text.toString()
-                val type = typeInput.text.toString()
-                val emoji = emojiInput.text.toString()
-                if (name.isNotBlank() && type in listOf("Income", "Expense") && emoji.isNotBlank()) {
-                    val updatedCategory = category.copy(name = name, type = type, emoji = emoji)
-                    viewModel.updateCategory(updatedCategory)
-                } else {
-                    Toast.makeText(requireContext(), "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
-                }
+            .create()
+            
+        // Set up button click listeners
+        dialogView.findViewById<MaterialButton>(R.id.btnSave).setOnClickListener {
+            val name = nameInput.text.toString().trim()
+            val emoji = emojiInput.text.toString()
+            val type = if (radioIncome.isChecked) "Income" else "Expense"
+            
+            if (name.isNotBlank() && emoji.isNotBlank()) {
+                val updatedCategory = category.copy(name = name, type = type, emoji = emoji)
+                viewModel.updateCategory(updatedCategory)
+                dialog.dismiss()
+            } else if (name.isBlank()) {
+                Toast.makeText(requireContext(), "Please enter a category name", Toast.LENGTH_SHORT).show()
+            } else if (emoji.isBlank()) {
+                Toast.makeText(requireContext(), "Please select an emoji", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+        
+        dialogView.findViewById<MaterialButton>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
 
     override fun onDestroyView() {
@@ -204,12 +340,12 @@ class CategoriesFragment : Fragment() {
                 val category = categories[position]
                 holder.bind(category)
             } else {
-                // "More" item at the end
-                holder.bindMoreItem()
+                // "Add" item at the end
+                holder.bindAddItem()
             }
         }
         
-        override fun getItemCount(): Int = categories.size + 1 // +1 for the "More" item
+        override fun getItemCount(): Int = categories.size + 1 // +1 for the "Add" item
         
         inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val emojiTextView: TextView = itemView.findViewById(R.id.tvEmoji)
@@ -231,11 +367,11 @@ class CategoriesFragment : Fragment() {
                 itemView.setOnClickListener { onItemClick(category) }
             }
             
-            fun bindMoreItem() {
+            fun bindAddItem() {
                 emojiTextView.text = "+"
-                nameTextView.text = "More"
+                nameTextView.text = "Add"
                 
-                // Set a different color for the "More" item
+                // Set a different color for the "Add" item
                 try {
                     cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#EEEEEE"))
                 } catch (e: Exception) {
@@ -245,5 +381,47 @@ class CategoriesFragment : Fragment() {
                 itemView.setOnClickListener { showAddCategoryDialog() }
             }
         }
+    }
+    
+    /**
+     * Custom input filter to restrict input to emoji characters
+     */
+    private class EmojiInputFilter : InputFilter {
+        override fun filter(
+            source: CharSequence?, 
+            start: Int, 
+            end: Int, 
+            dest: Spanned?, 
+            dstart: Int, 
+            dend: Int
+        ): CharSequence? {
+            if (source == null || source.isEmpty()) return null
+            
+            // Allow any character - we'll validate on save
+            return null
+        }
+        
+        companion object {
+            /**
+             * Simple check if a character is likely an emoji
+             * This is a simpler approach that works for most common emoji
+             */
+            fun isEmojiChar(text: String): Boolean {
+                if (text.isEmpty()) return false
+                
+                // Simple validation - most emoji characters have code points outside the standard ASCII range
+                // This is not perfect but works for most common emoji
+                val codePoint = text.codePointAt(0)
+                return codePoint > 255
+            }
+        }
+    }
+    
+    /**
+     * Check if the input string is a valid emoji
+     */
+    private fun isEmojiValid(text: String): Boolean {
+        // Allow any single character or emoji (emoji can be multiple code points)
+        return text.isNotBlank() && text.length <= 2
     }
 }

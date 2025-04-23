@@ -1,57 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp">
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:hint="@string/category_name_hint"
-        app:hintTextColor="@color/primary">
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:text="New Category"
+            android:textColor="@color/primary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Category Name Input -->
+        <EditText
             android:id="@+id/nameInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/edit_text_background"
+            android:hint="Category name (max 20 chars)"
             android:inputType="text"
-            android:textColor="@color/primary" />
+            android:maxLength="20"
+            android:padding="16dp"
+            android:textColor="@color/primary"
+            android:textColorHint="@color/lime_green" />
 
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:hint="@string/category_type_hint"
-        app:hintTextColor="@color/primary">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/typeInput"
-            android:layout_width="match_parent"
+        <!-- Category Type Radio Buttons -->
+        <RadioGroup
+            android:id="@+id/categoryTypeRadioGroup"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:textColor="@color/primary" />
+            android:layout_marginBottom="24dp"
+            android:orientation="horizontal">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <RadioButton
+                android:id="@+id/radioIncome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="32dp"
+                android:button="@null"
+                android:drawableStart="@android:drawable/btn_radio"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/primary"
+                android:checked="true"
+                android:text="Income"
+                android:textColor="@color/primary" 
+                app:buttonTint="@color/primary"
+                android:textSize="16sp" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:hint="@string/category_emoji_hint"
-        app:hintTextColor="@color/primary">
+            <RadioButton
+                android:id="@+id/radioExpense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableStart="@android:drawable/btn_radio"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/primary"
+                android:text="Expense"
+                android:textColor="@color/primary"
+                app:buttonTint="@color/primary"
+                android:textSize="16sp" />
+        </RadioGroup>
 
-        <com.google.android.material.textfield.TextInputEditText
+        <!-- Emoji Selection Input -->
+        <EditText
             android:id="@+id/emojiInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:textColor="@color/primary" />
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/edit_text_background"
+            android:hint="Select one emoji"
+            android:inputType="textShortMessage"
+            android:maxLength="2"
+            android:maxLines="1"
+            android:padding="16dp"
+            android:textSize="16sp"
+            android:gravity="start|center_vertical"
+            android:textColor="@color/primary"
+            android:textColorHint="@color/lime_green" 
+            tools:text="😊" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="@color/lime_green"
+            android:padding="14dp"
+            android:text="Save"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:cornerRadius="32dp" />
 
-</LinearLayout>
+        <!-- Cancel Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/light_green"
+            android:padding="14dp"
+            android:text="Cancel"
+            android:textAllCaps="false"
+            android:textColor="@color/primary"
+            android:textSize="16sp"
+            app:cornerRadius="32dp" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

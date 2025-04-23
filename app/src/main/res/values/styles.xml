@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom style for radio buttons with primary color -->
+    <style name="PrimaryRadioButton" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:colorControlNormal">@color/primary</item>
+        <item name="android:colorControlActivated">@color/primary</item>
+    </style>
+</resources> 
