@@ -3,86 +3,48 @@ package com.example.tally.repositories
 import android.content.Context
 import com.example.tally.models.Category
 import com.example.tally.models.Transaction
-import com.example.tally.utils.FileUtils
-import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken
 import com.google.gson.Gson
-import java.util.UUID
+import com.google.gson.reflect.TypeToken
 
-class FinanceRepository(context: Context) {
-
-    private val sharedPreferences = context.getSharedPreferences("finance_prefs", Context.MODE_PRIVATE)
+class FinanceRepository(private val context: Context) {
+    private val prefs = context.getSharedPreferences("finance_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    fun getTransactions(): List<Transaction> {
-        val json = sharedPreferences.getString("transactions", "[]") ?: "[]"
-        return gson.fromJson(json, object : TypeToken<List<Transaction>>() {}.type)
-    }
-
-    fun saveTransaction(transaction: Transaction) {
-        val transactions = getTransactions().toMutableList()
-        transactions.add(transaction)
-        saveTransactions(transactions)
-    }
-
-    fun deleteTransaction(transaction: Transaction) {
-        val transactions = getTransactions().toMutableList()
-        transactions.remove(transaction)
-        saveTransactions(transactions)
-    }
-
-    private fun saveTransactions(transactions: List<Transaction>) {
-        val json = gson.toJson(transactions)
-        sharedPreferences.edit().putString("transactions", json).apply()
-    }
-    
     fun getCategories(): List<Category> {
-        val json = sharedPreferences.getString("categories", "[]") ?: "[]"
-        return gson.fromJson(json, object : TypeToken<List<Category>>() {}.type)
-    }
-    
-    fun saveCategory(category: Category) {
-        val categories = getCategories().toMutableList()
-        categories.add(category)
-        saveCategories(categories)
-    }
-    
-    fun updateCategory(category: Category) {
-        val categories = getCategories().toMutableList()
-        val index = categories.indexOfFirst { it.id == category.id }
-        if (index != -1) {
-            categories[index] = category
-            saveCategories(categories)
+        val categoriesJson = prefs.getString("categories", null)
+        return if (categoriesJson != null) {
+            val type = object : TypeToken<List<Category>>() {}.type
+            gson.fromJson(categoriesJson, type)
+        } else {
+            Category.defaultCategories.also { saveCategories(it) }
         }
     }
-    
-    fun deleteCategory(category: Category) {
-        val categories = getCategories().toMutableList()
-        categories.remove(category)
-        saveCategories(categories)
-    }
-    
-    private fun saveCategories(categories: List<Category>) {
-        val json = gson.toJson(categories)
-        sharedPreferences.edit().putString("categories", json).apply()
+
+    fun saveCategories(categories: List<Category>) {
+        val categoriesJson = gson.toJson(categories)
+        prefs.edit().putString("categories", categoriesJson).apply()
     }
 
-    fun getMonthlyBudget(): Double {
-        return sharedPreferences.getFloat("monthly_budget", 1000f).toDouble()
+    fun getTransactions(): List<Transaction> {
+        val transactionsJson = prefs.getString("transactions", null)
+        return if (transactionsJson != null) {
+            val type = object : TypeToken<List<Transaction>>() {}.type
+            gson.fromJson(transactionsJson, type)
+        } else {
+            emptyList()
+        }
     }
 
-    fun updateMonthlyBudget(budget: Double) {
-        sharedPreferences.edit().putFloat("monthly_budget", budget.toFloat()).apply()
+    fun saveTransactions(transactions: List<Transaction>) {
+        val transactionsJson = gson.toJson(transactions)
+        prefs.edit().putString("transactions", transactionsJson).apply()
     }
 
-    fun backupData(context: Context) {
-        val data = gson.toJson(getTransactions())
-        FileUtils.writeToFile(context, "backup.json", data)
+    fun getBudget(): Double {
+        return prefs.getFloat("budget", 0f).toDouble()
     }
 
-    fun restoreData(context: Context) {
-        val data = FileUtils.readFromFile(context, "backup.json")
-        val type = object : TypeToken<List<Transaction>>() {}.type
-        val transactions = gson.fromJson<List<Transaction>>(data, type)
-        saveTransactions(transactions)
+    fun saveBudget(budget: Double) {
+        prefs.edit().putFloat("budget", budget.toFloat()).apply()
     }
 }

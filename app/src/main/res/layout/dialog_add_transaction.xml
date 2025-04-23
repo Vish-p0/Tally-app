@@ -38,28 +38,59 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:hint="Category">
+        android:hint="Description (Optional)">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/categoryInput"
+            android:id="@+id/descriptionInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text" />
+            android:inputType="textMultiLine"
+            android:minLines="2" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Type"
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+    <RadioGroup
+        android:id="@+id/typeRadioGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:hint="Type (Income/Expense)">
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/typeInput"
-            android:layout_width="match_parent"
+        <RadioButton
+            android:id="@+id/expenseRadio"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="text" />
+            android:layout_marginEnd="16dp"
+            android:checked="true"
+            android:text="Expense" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <RadioButton
+            android:id="@+id/incomeRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Income" />
+
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Category"
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:minHeight="48dp" />
 
 </LinearLayout> 

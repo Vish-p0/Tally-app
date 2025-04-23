@@ -18,14 +18,15 @@ import com.github.mikephil.charting.utils.ColorTemplate
 
 class AnalyticsFragment : Fragment() {
 
-    private lateinit var binding: FragmentAnalyticsBinding
+    private var _binding: FragmentAnalyticsBinding? = null
+    private val binding get() = _binding!!
     private val viewModel: FinanceViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentAnalyticsBinding.inflate(inflater, container, false)
+        _binding = FragmentAnalyticsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -40,8 +41,16 @@ class AnalyticsFragment : Fragment() {
         // Observe transactions
         viewModel.transactions.observe(viewLifecycleOwner) { transactions ->
             val expenses = transactions.filter { it.type == "Expense" }
-            val categoryMap = expenses.groupBy { it.category }
-                .mapValues { it.value.sumOf { tx -> tx.amount }.toFloat() }
+            val categoryMap = expenses.groupBy { it.categoryId }
+                .mapValues { entry ->
+                    val categoryId = entry.key
+                    val categoryName = if (categoryId != null) {
+                        viewModel.getCategoryById(categoryId)?.name ?: "Unknown"
+                    } else {
+                        "Uncategorized"
+                    }
+                    entry.value.sumOf { tx -> tx.amount }.toFloat() to categoryName
+                }
             updatePieChart(categoryMap)
         }
 
@@ -55,12 +64,17 @@ class AnalyticsFragment : Fragment() {
         }
     }
 
-    private fun updatePieChart(categoryMap: Map<String, Float>) {
-        val entries = categoryMap.map { PieEntry(it.value, it.key) }
+    private fun updatePieChart(categoryMap: Map<String?, Pair<Float, String>>) {
+        val entries = categoryMap.map { PieEntry(it.value.first, it.value.second) }
         val dataSet = PieDataSet(entries, "Expenses by Category")
         dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
         val data = PieData(dataSet)
         binding.pieChart.data = data
         binding.pieChart.invalidate()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

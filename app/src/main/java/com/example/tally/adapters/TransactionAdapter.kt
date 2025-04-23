@@ -3,48 +3,59 @@ package com.example.tally.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import android.widget.Filter
+import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tally.R
+import com.example.tally.databinding.ItemTransactionBinding
 import com.example.tally.models.Transaction
+import com.example.tally.viewmodels.FinanceViewModel
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 class TransactionAdapter(
+    private val viewModel: FinanceViewModel,
     private val onItemClick: (Transaction) -> Unit
-) : ListAdapter<Transaction, TransactionAdapter.ViewHolder>(TransactionDiffCallback()) {
+) : ListAdapter<Transaction, TransactionAdapter.ViewHolder>(TransactionDiffCallback()), Filterable {
 
     private var allTransactions = listOf<Transaction>()
     private var filteredTransactions = listOf<Transaction>()
 
-    val filter = object : android.widget.Filter() {
-        override fun performFiltering(constraint: CharSequence?): FilterResults {
-            val query = constraint?.toString()?.toLowerCase() ?: ""
-            val filteredList = if (query.isEmpty()) {
-                allTransactions
-            } else {
-                allTransactions.filter { transaction ->
-                    transaction.title.toLowerCase().contains(query) ||
-                    transaction.category.toLowerCase().contains(query)
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val query = constraint?.toString()?.toLowerCase(Locale.getDefault()) ?: ""
+                val filteredList = if (query.isEmpty()) {
+                    allTransactions
+                } else {
+                    allTransactions.filter { transaction ->
+                        (transaction.title ?: "").toLowerCase(Locale.getDefault()).contains(query) ||
+                        (transaction.description ?: "").toLowerCase(Locale.getDefault()).contains(query) ||
+                        (transaction.categoryId ?: "").toLowerCase(Locale.getDefault()).contains(query) ||
+                        (transaction.type ?: "").toLowerCase(Locale.getDefault()).contains(query)
+                    }
+                }
+                return FilterResults().apply {
+                    values = filteredList
+                    count = filteredList.size
                 }
             }
-            return FilterResults().apply {
-                values = filteredList
-                count = filteredList.size
-            }
-        }
 
-        override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-            filteredTransactions = results?.values as? List<Transaction> ?: emptyList()
-            submitList(filteredTransactions)
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                filteredTransactions = results?.values as? List<Transaction> ?: emptyList()
+                submitList(filteredTransactions)
+            }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_transaction, parent, false)
-        return ViewHolder(view)
+        val binding = ItemTransactionBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -56,20 +67,64 @@ class TransactionAdapter(
         super.submitList(list)
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
-        private val tvCategory: TextView = itemView.findViewById(R.id.tvCategory)
-        private val tvAmount: TextView = itemView.findViewById(R.id.tvAmount)
+    inner class ViewHolder(private val binding: ItemTransactionBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(transaction: Transaction) {
-            tvTitle.text = transaction.title
-            tvCategory.text = transaction.category
-            tvAmount.text = String.format(Locale.getDefault(), "%.2f", transaction.amount)
-            itemView.setOnClickListener { onItemClick(transaction) }
+            binding.apply {
+                // Format the title with date
+                val dateStr = SimpleDateFormat("MMM dd", Locale.getDefault())
+                    .format(transaction.date)
+                
+                // Set the title text
+                val title = transaction.title ?: ""
+                tvTitle.text = if (title.isNotEmpty()) {
+                    "$dateStr - $title"
+                } else {
+                    dateStr
+                }
+                
+                // Set the description if available
+                val description = transaction.description ?: ""
+                if (description.isNotEmpty()) {
+                    tvDescription.text = description
+                    tvDescription.visibility = View.VISIBLE
+                } else {
+                    tvDescription.visibility = View.GONE
+                }
+                
+                tvAmount.text = String.format("$%.2f", transaction.amount)
+
+                // Handle category display
+                try {
+                    val categoryId = transaction.categoryId ?: ""
+                    val category = if (categoryId.isNotEmpty()) viewModel.getCategoryById(categoryId) else null
+                    if (category != null) {
+                        tvCategory.text = "${category.emoji} ${category.name}"
+                        tvCategory.visibility = View.VISIBLE
+                    } else {
+                        tvCategory.text = "Unknown Category"
+                        tvCategory.visibility = View.VISIBLE
+                    }
+                } catch (e: Exception) {
+                    tvCategory.text = "Unknown Category"
+                    tvCategory.visibility = View.VISIBLE
+                }
+
+                // Set type-specific styling
+                val type = transaction.type ?: "Expense"
+                if (type == "Income") {
+                    tvAmount.setTextColor(root.context.getColor(android.R.color.holo_green_dark))
+                } else {
+                    tvAmount.setTextColor(root.context.getColor(android.R.color.holo_red_dark))
+                }
+
+                root.setOnClickListener { onItemClick(transaction) }
+            }
         }
     }
 
-    class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
+    private class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
         override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
             return oldItem.id == newItem.id
         }

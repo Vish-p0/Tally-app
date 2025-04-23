@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TALLY</string>
     <string name="app_logo">Logo</string>
@@ -19,6 +20,8 @@
     <string name="facebook">Facebook</string>
     <string name="google">Google</string>
     <string name="no_account">Don\'t have an account? </string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="category_name_hint">Category Name</string>
+    <string name="category_type_hint">Type (Income/Expense)</string>
+    <string name="category_emoji_hint">Emoji</string>
 </resources>

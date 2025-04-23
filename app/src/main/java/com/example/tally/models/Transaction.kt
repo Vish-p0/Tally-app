@@ -4,9 +4,10 @@ import java.util.UUID
 
 data class Transaction(
     val id: String = UUID.randomUUID().toString(),
-    val title: String,
+    val title: String? = "",
     val amount: Double,
-    val category: String,
+    val categoryId: String? = "",
     val date: Long = System.currentTimeMillis(),
-    val type: String // "Income" or "Expense"
+    val type: String? = "Expense", // "Income" or "Expense"
+    val description: String? = "" // Optional description field
 )

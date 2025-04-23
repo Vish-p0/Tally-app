@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
 
     // Navigation Component
     implementation(libs.androidx.navigation.fragment.ktx)
