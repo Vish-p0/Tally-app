@@ -36,6 +36,7 @@
                 android:textColor="@color/primary"/>
 
             <ImageView
+                android:id="@+id/ivNotifications"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@drawable/bell"

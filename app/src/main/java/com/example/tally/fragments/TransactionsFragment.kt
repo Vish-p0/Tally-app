@@ -29,6 +29,7 @@ import java.util.Locale
 import java.util.UUID
 import androidx.navigation.fragment.findNavController
 import com.example.tally.fragments.TransactionSwipeHelper
+import android.widget.ImageView
 
 class TransactionsFragment : Fragment(), 
     TransactionDetailsDialogFragment.TransactionDialogListener,
@@ -78,6 +79,11 @@ class TransactionsFragment : Fragment(),
         setupSummaryCards()
         observeTransactions()
         updateCurrentPeriodText()
+        
+        // Set up notification bell
+        view.findViewById<ImageView>(R.id.ivNotifications)?.setOnClickListener {
+            findNavController().navigate(R.id.action_transactionsFragment_to_notificationsFragment)
+        }
         
         // Add transaction button - navigate to AddTransactionFragment with appropriate type
         binding.fabAddTransaction.setOnClickListener {

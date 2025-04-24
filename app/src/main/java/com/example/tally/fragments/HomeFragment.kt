@@ -106,9 +106,7 @@ class HomeFragment : Fragment() {
     private fun setupClickListeners() {
         // Notification bell click
         view?.findViewById<ImageView>(R.id.ivNotification)?.setOnClickListener {
-            // TODO: Implement notifications screen or dropdown
-            // For now, just show a message
-            showToast("Notifications feature coming soon!")
+            findNavController().navigate(R.id.action_homeFragment_to_notificationsFragment)
         }
         
         // View All Transactions button click

@@ -64,6 +64,9 @@ import androidx.navigation.fragment.findNavController
 import android.widget.FrameLayout
 import android.util.Log
 import android.widget.ProgressBar
+import com.example.tally.services.NotificationService
+import com.example.tally.utils.PermissionUtils
+import androidx.activity.result.ActivityResultLauncher
 
 class AnalyticsFragment : Fragment() {
 
@@ -110,6 +113,8 @@ class AnalyticsFragment : Fragment() {
     
     // Track shown alerts to prevent repeat alerts for the same items
     private val shownAlerts = mutableSetOf<String>()
+    
+    private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -126,6 +131,23 @@ class AnalyticsFragment : Fragment() {
         barChart = binding.barChart
         expensePieChart = binding.expensePieChart
         incomePieChart = binding.incomePieChart
+        
+        // Register notification permission launcher
+        notificationPermissionLauncher = PermissionUtils.registerNotificationPermissionLauncher(this) { isGranted ->
+            if (isGranted) {
+                // Navigate to notifications
+                navigateToNotifications()
+            }
+        }
+        
+        // Setup notifications button click listener
+        binding.ivNotifications.setOnClickListener {
+            if (PermissionUtils.hasNotificationPermission(requireContext())) {
+                navigateToNotifications()
+            } else {
+                showNotificationPermissionDialog()
+            }
+        }
         
         // Initialize budget repository
         budgetRepository = BudgetRepository(requireContext())
@@ -1761,6 +1783,9 @@ class AnalyticsFragment : Fragment() {
     
     // Check for budget warnings and show notifications
     private fun checkAndShowBudgetWarnings(warningItems: List<BudgetItem>) {
+        // Get notification service
+        val notificationService = NotificationService.getInstance(requireContext())
+        
         for (item in warningItems) {
             // Create a unique key for this item and alert type
             val alertKey = "${item.id}_${if (item.isOverBudget()) "over" else "near"}"
@@ -1781,6 +1806,9 @@ class AnalyticsFragment : Fragment() {
                         .setNegativeButton("Dismiss", null)
                         .show()
                     
+                    // Send push notification
+                    notificationService.sendBudgetAlert(item, item.expenseAmount)
+                    
                     // Mark this alert as shown
                     shownAlerts.add(alertKey)
                 } else if (item.isNearLimit()) {
@@ -1793,6 +1821,9 @@ class AnalyticsFragment : Fragment() {
                                    "(${item.getPercentageSpent()}% of budget)")
                         .setPositiveButton("OK", null)
                         .show()
+                    
+                    // Send push notification
+                    notificationService.sendBudgetWarning(item, item.expenseAmount)
                     
                     // Mark this alert as shown
                     shownAlerts.add(alertKey)
@@ -1863,5 +1894,23 @@ class AnalyticsFragment : Fragment() {
         super.onPause()
         // Clear shown alerts when fragment is paused
         shownAlerts.clear()
+    }
+    
+    private fun navigateToNotifications() {
+        // Navigate to the notifications fragment
+        findNavController().navigate(R.id.action_analyticsFragment_to_notificationsFragment)
+    }
+    
+    private fun showNotificationPermissionDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Notification Permission Required")
+            .setMessage("To view notifications, Tally needs permission to access notifications.")
+            .setPositiveButton("Grant Permission") { _, _ ->
+                PermissionUtils.requestNotificationPermission(notificationPermissionLauncher)
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 }

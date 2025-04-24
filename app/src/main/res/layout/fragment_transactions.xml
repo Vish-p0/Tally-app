@@ -34,8 +34,8 @@
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
-                <ImageButton
-                    android:id="@+id/btnNotification"
+                <ImageView
+                    android:id="@+id/ivNotifications"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:padding="5dp"

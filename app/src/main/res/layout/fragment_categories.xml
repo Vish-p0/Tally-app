@@ -40,7 +40,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageButton
-                    android:id="@+id/btnNotification"
+                    android:id="@+id/ivNotifications"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:background="@drawable/circle_background"

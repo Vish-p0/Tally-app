@@ -35,6 +35,11 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        // Notification button
+        binding.ivNotifications.setOnClickListener {
+            findNavController().navigate(R.id.action_profileFragment_to_notificationsFragment)
+        }
+        
         // Settings button
         binding.btnSettings.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)

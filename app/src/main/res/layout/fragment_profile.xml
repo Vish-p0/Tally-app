@@ -11,7 +11,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:src="@drawable/back"
         android:contentDescription="Back"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +31,7 @@
         app:layout_constraintTop_toTopOf="@+id/btnBack" />
 
     <ImageView
-        android:id="@+id/btnNotification"
+        android:id="@+id/ivNotifications"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="16dp"
@@ -192,8 +192,8 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:text="Settings"
                     android:textColor="@color/primary"
@@ -227,8 +227,8 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:text="Help"
                     android:textColor="@color/primary"
@@ -241,7 +241,7 @@
 
             <!-- Logout Button -->
             <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/btnLogout"
+                android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -262,8 +262,8 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:text="Logout"
                     android:textColor="@color/primary"
@@ -274,7 +274,7 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-</LinearLayout>
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

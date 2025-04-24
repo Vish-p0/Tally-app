@@ -93,8 +93,8 @@ class CategoriesFragment : Fragment() {
 
     private fun setupButtonListeners() {
         // Notification button click listener
-        binding.btnNotification.setOnClickListener {
-            Toast.makeText(requireContext(), "Notifications", Toast.LENGTH_SHORT).show()
+        binding.ivNotifications.setOnClickListener {
+            findNavController().navigate(R.id.action_categoriesFragment_to_notificationsFragment)
         }
         
         // Add Category button click listener

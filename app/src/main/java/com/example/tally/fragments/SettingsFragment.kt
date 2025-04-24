@@ -164,7 +164,7 @@ class SettingsFragment : Fragment() {
 
     private fun showNotificationSettings() {
         // Here you would typically navigate to notification settings
-        Snackbar.make(binding.root, "Notification settings coming soon", Snackbar.LENGTH_SHORT).show()
+        findNavController().navigate(R.id.action_settingsFragment_to_notificationsFragment)
     }
 
     private fun backupData() {
