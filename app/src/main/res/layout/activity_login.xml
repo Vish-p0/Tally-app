@@ -102,22 +102,23 @@
                 android:layout_height="24dp"
                 android:layout_marginEnd="16dp"
                 android:contentDescription="@string/view_password"
-                android:src="@drawable/eye"
+                android:src="@drawable/eye_closed"
                 app:layout_constraintBottom_toBottomOf="@+id/editTextPassword"
                 app:layout_constraintEnd_toEndOf="@+id/editTextPassword"
                 app:layout_constraintTop_toTopOf="@+id/editTextPassword" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="40dp"
-                android:background="@drawable/button_background"
                 android:padding="16dp"
                 android:text="@string/login"
                 android:textAllCaps="false"
-                android:textColor="@color/primary"
+                android:textColor="@color/white"
                 android:textSize="16sp"
+                app:backgroundTint="@color/lime_green"
+                app:cornerRadius="30dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/editTextPassword" />
@@ -134,17 +135,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/buttonLogin" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSignUp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/button_outline_background"
                 android:padding="16dp"
                 android:text="@string/signup"
                 android:textAllCaps="false"
                 android:textColor="@color/primary"
                 android:textSize="16sp"
+                app:backgroundTint="@color/background"
+                app:cornerRadius="30dp"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textViewForgotPassword" />
