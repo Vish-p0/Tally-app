@@ -44,6 +44,25 @@ import android.app.DatePickerDialog
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.tally.models.BudgetItem
+import com.example.tally.models.MonthlyBudget
+import com.example.tally.repository.BudgetRepository
+import com.example.tally.adapters.BudgetItemAdapter
+import android.app.AlertDialog
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Spinner
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import android.widget.RadioGroup
+import android.widget.RadioButton
+import android.widget.Toast
+import androidx.navigation.fragment.findNavController
+import android.widget.FrameLayout
+import android.util.Log
 
 class AnalyticsFragment : Fragment() {
 
@@ -53,6 +72,22 @@ class AnalyticsFragment : Fragment() {
     private lateinit var barChart: BarChart
     private lateinit var expensePieChart: PieChart
     private lateinit var incomePieChart: PieChart
+    
+    // Budget related properties
+    private lateinit var budgetRepository: BudgetRepository
+    private lateinit var budgetAdapter: BudgetItemAdapter
+    private var currentBudget: MonthlyBudget? = null
+    
+    // Views for budget section
+    private var budgetSection: View? = null
+    private var createBudgetButton: Button? = null
+    private var budgetActionsLayout: LinearLayout? = null
+    private var editBudgetButton: Button? = null
+    private var deleteBudgetButton: Button? = null
+    private var currentMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
+    private var currentYear: Int = Calendar.getInstance().get(Calendar.YEAR)
+    private var selectedMonth: Int = 0
+    private var selectedYear: Int = 0
     
     // Format currency
     private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
@@ -71,6 +106,9 @@ class AnalyticsFragment : Fragment() {
     
     // Current budget
     private var budget: Double = 20000.0
+    
+    // Track shown alerts to prevent repeat alerts for the same items
+    private val shownAlerts = mutableSetOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -87,6 +125,18 @@ class AnalyticsFragment : Fragment() {
         barChart = binding.barChart
         expensePieChart = binding.expensePieChart
         incomePieChart = binding.incomePieChart
+        
+        // Initialize budget repository
+        budgetRepository = BudgetRepository(requireContext())
+        
+        // Set a category provider that uses viewModel to map category IDs to names
+        budgetRepository.setCategoryProvider { categoryId ->
+            val categories = viewModel.categories.value ?: emptyList()
+            val category = categories.find { it.id == categoryId }
+            category?.name ?: categoryId.capitalize(Locale.getDefault())
+        }
+        
+        setupBudgetSection()
         
         // Set default date range to current month
         val cal = Calendar.getInstance()
@@ -1164,5 +1214,644 @@ class AnalyticsFragment : Fragment() {
         }
         
         popup.show()
+    }
+
+    // Method to set up the monthly budget section
+    private fun setupBudgetSection() {
+        // Initialize RecyclerView and Adapter for budget items
+        val recyclerView = binding.root.findViewById<RecyclerView>(R.id.budgetCategoriesRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        
+        // Create adapter with empty list initially
+        budgetAdapter = BudgetItemAdapter(
+            requireContext(),
+            mutableListOf(),
+            onEditClickListener = { budgetItem ->
+                showEditBudgetDialog(budgetItem)
+            }
+        )
+        
+        recyclerView.adapter = budgetAdapter
+        
+        // Set up click listeners for buttons
+        val budgetSectionView = binding.root.findViewById<View>(R.id.monthlyBudgetSection)
+        val editBudgetButton = budgetSectionView.findViewById<Button>(R.id.editBudgetButton)
+        val deleteBudgetButton = budgetSectionView.findViewById<Button>(R.id.deleteBudgetButton)
+        
+        // Setup click listener for the calendar icon
+        val calendarButton = budgetSectionView.findViewById<FrameLayout>(R.id.monthYearCalendarButton)
+        calendarButton.setOnClickListener {
+            showMonthYearPickerForBudget(selectedMonth, selectedYear) { month, year ->
+                // Add 1 because MonthlyBudget uses 1-based months, but Calendar uses 0-based
+                loadBudgetForMonth(month + 1, year)
+                // Update the text display
+                val calendar = Calendar.getInstance()
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month)
+                val monthYearText = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
+                budgetSectionView.findViewById<TextView>(R.id.currentBudgetPeriodText).text = monthYearText
+            }
+        }
+
+        // Set up edit button click listener
+        editBudgetButton?.setOnClickListener {
+            // Navigate to budget setup fragment in edit mode
+            currentBudget?.let { budget ->
+                findNavController().navigate(
+                    R.id.action_analyticsFragment_to_budgetSetupFragment,
+                    Bundle().apply {
+                        putInt("month", budget.month)
+                        putInt("year", budget.year)
+                        putBoolean("isEditing", true)
+                    }
+                )
+            }
+        }
+        
+        // Set up delete button click listener
+        deleteBudgetButton?.setOnClickListener {
+            currentBudget?.let {
+                showDeleteBudgetConfirmation(it.month, it.year)
+            }
+        }
+        
+        // Load budget for current month by default
+        val calendarInstance = Calendar.getInstance()
+        val currentMonth = calendarInstance.get(Calendar.MONTH) + 1 // +1 because Calendar months are 0-based
+        val currentYear = calendarInstance.get(Calendar.YEAR)
+        
+        // Pass month/year to load budget
+        loadBudgetForMonth(currentMonth, currentYear)
+    }
+    
+    private fun loadBudgetForMonth(month: Int, year: Int) {
+        // Retrieve all category names from the view model for this user
+        val allCategories = viewModel.categories.value ?: emptyList()
+        val expenseCategoryNames = allCategories
+            .filter { it.type == "Expense" }
+            .map { it.name }
+            .toSet()
+        
+        // Set selected month/year for reference
+        selectedMonth = month - 1 // 0-based for the UI components
+        selectedYear = year
+        
+        // Update the month year text
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.YEAR, year)
+        calendar.set(Calendar.MONTH, month - 1) // Adjust because Calendar uses 0-based months
+        val monthYearText = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
+        
+        // Find the budget section view and update the month year text
+        val budgetSectionView = binding.root.findViewById<View>(R.id.monthlyBudgetSection)
+        budgetSectionView.findViewById<TextView>(R.id.currentBudgetPeriodText).text = monthYearText
+        
+        // Start observing the budget for the selected month
+        budgetRepository.getBudgetForMonth(month, year).observe(viewLifecycleOwner) { budget ->
+            currentBudget = budget
+            
+            // Now ensure all user categories exist in the budget
+            if (expenseCategoryNames.isNotEmpty() && budget != null) {
+                budgetRepository.ensureAllUserCategoriesExist(expenseCategoryNames.toList())
+            }
+            
+            // Reference to budget section
+            val budgetSectionView = binding.root.findViewById<View>(R.id.monthlyBudgetSection)
+            val noBudgetLayout = budgetSectionView.findViewById<LinearLayout>(R.id.noBudgetLayout)
+            val budgetSummaryLayout = budgetSectionView.findViewById<LinearLayout>(R.id.budgetSummaryLayout)
+            val budgetCategoriesHeaderLayout = budgetSectionView.findViewById<LinearLayout>(R.id.budgetCategoriesHeaderLayout)
+            val overallBudgetProgressLayout = budgetSectionView.findViewById<View>(R.id.overallBudgetProgressLayout)
+            val createBudgetButton = budgetSectionView.findViewById<Button>(R.id.createBudgetButton)
+            val budgetActionsLayout = budgetSectionView.findViewById<LinearLayout>(R.id.budgetActionsLayout)
+            
+            if (budget != null && budget.budgetItems.isNotEmpty()) {
+                // Show budget data
+                noBudgetLayout.visibility = View.GONE
+                budgetSummaryLayout.visibility = View.VISIBLE
+                budgetCategoriesHeaderLayout.visibility = View.VISIBLE
+                overallBudgetProgressLayout.visibility = View.VISIBLE
+                
+                // Filter out income categories - only show expense categories
+                val expenseItems = budget.budgetItems.filter { it.isExpense() }
+                
+                // Log the categories we're displaying
+                Log.d("AnalyticsFragment", "Displaying ${expenseItems.size} expense categories")
+                expenseItems.forEach { 
+                    Log.d("AnalyticsFragment", "Category: ${it.categoryName}, Budget: ${it.budgetAmount}, Spent: ${it.expenseAmount}")
+                }
+                
+                // Ensure all categories are sorted logically (with Other at the end)
+                val sortedExpenseItems = expenseItems.sortedWith(compareBy(
+                    // Sort by whether it's "Other" (should be last)
+                    { it.categoryName.equals("Other", ignoreCase = true) },
+                    // Then by name
+                    { it.categoryName }
+                ))
+                
+                // Update adapter with all expense items
+                budgetAdapter.updateBudgetItems(sortedExpenseItems)
+                
+                // Update budget UI with the current budget structure
+                updateBudgetUI(budget)
+                
+                // Show the action buttons when budget exists
+                budgetActionsLayout?.visibility = View.VISIBLE
+                
+                // Get transactions to update expenses for this specific month
+                updateTransactionsForBudget(month, year)
+            } else {
+                // Show empty state
+                noBudgetLayout.visibility = View.VISIBLE
+                budgetSummaryLayout.visibility = View.GONE
+                budgetCategoriesHeaderLayout.visibility = View.GONE
+                overallBudgetProgressLayout.visibility = View.GONE
+                
+                // Clear adapter data
+                budgetAdapter.updateBudgetItems(emptyList())
+                
+                // Setup create budget button click listener
+                createBudgetButton?.setOnClickListener {
+                    findNavController().navigate(
+                        R.id.action_analyticsFragment_to_budgetSetupFragment,
+                        Bundle().apply {
+                            putInt("month", month)
+                            putInt("year", year)
+                            putBoolean("isEditing", false)
+                        }
+                    )
+                }
+                
+                // Hide action buttons when no budget exists
+                budgetActionsLayout?.visibility = View.GONE
+            }
+        }
+    }
+    
+    private fun updateTransactionsForBudget(month: Int, year: Int) {
+        val transactions = viewModel.transactions.value ?: emptyList()
+        
+        // Get all user expense categories from the view model
+        val userExpenseCategories = viewModel.categories.value?.filter { it.type == "Expense" } ?: emptyList()
+        val expenseCategoryNames = userExpenseCategories.map { it.name }
+        
+        // Ensure all user expense categories exist in the budget
+        if (expenseCategoryNames.isNotEmpty()) {
+            budgetRepository.ensureAllUserCategoriesExist(expenseCategoryNames)
+        }
+        
+        // Filter transactions for the specified month
+        val filteredTransactions = transactions.filter { transaction ->
+            // Skip transactions with null dates
+            if (transaction.date == null) return@filter false
+            
+            val transactionDate = Date(transaction.date)
+            val cal = Calendar.getInstance().apply { time = transactionDate }
+            cal.get(Calendar.MONTH) + 1 == month && cal.get(Calendar.YEAR) == year
+        }
+        
+        // Update budget expenses with filtered transactions
+        budgetRepository.updateExpensesFromTransactions(filteredTransactions)
+        
+        // Update UI if we have a current budget
+        currentBudget?.let { budget ->
+            updateBudgetUI(budget)
+            
+            // Filter out income categories, only display expense categories
+            val expenseItems = budget.budgetItems.filter { it.isExpense() }
+            
+            // Log categories we're displaying
+            Log.d("AnalyticsFragment", "Displaying ${expenseItems.size} expense categories")
+            expenseItems.forEach { 
+                Log.d("AnalyticsFragment", "Category: ${it.categoryName}, Budget: ${it.budgetAmount}, Spent: ${it.expenseAmount}")
+            }
+            
+            // Ensure all categories are sorted logically (with Other at the end)
+            val sortedExpenseItems = expenseItems.sortedWith(compareBy(
+                // Sort by whether it's "Other" (should be last)
+                { it.categoryName.equals("Other", ignoreCase = true) },
+                // Then by name
+                { it.categoryName }
+            ))
+            
+            // Update adapter with all expense items
+            budgetAdapter.updateBudgetItems(sortedExpenseItems)
+            
+            // Check for budget warnings
+            val warningItems = budgetRepository.checkBudgetWarnings()
+            if (warningItems.isNotEmpty()) {
+                checkAndShowBudgetWarnings(warningItems)
+            }
+        }
+    }
+
+    private fun showMonthYearPickerForBudget(currentMonth: Int, currentYear: Int, callback: (Int, Int) -> Unit) {
+        val months = arrayOf("January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December")
+
+        val years = (2020..2030).map { it.toString() }.toTypedArray()
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_month_year_picker, null)
+        val monthPicker = dialogView.findViewById<android.widget.NumberPicker>(R.id.monthPicker)
+        val yearPicker = dialogView.findViewById<android.widget.NumberPicker>(R.id.yearPicker)
+
+        // Style the number pickers
+        monthPicker.minValue = 0
+        monthPicker.maxValue = 11
+        monthPicker.displayedValues = months
+        monthPicker.value = currentMonth
+        setNumberPickerTextColor(monthPicker, resources.getColor(R.color.primary, null))
+
+        yearPicker.minValue = 0
+        yearPicker.maxValue = years.size - 1
+        yearPicker.displayedValues = years
+        yearPicker.value = years.indexOf(currentYear.toString())
+        setNumberPickerTextColor(yearPicker, resources.getColor(R.color.primary, null))
+
+        val dialog = MaterialAlertDialogBuilder(requireContext(), R.style.LightGreenAlertDialogStyle)
+            .setTitle("Select Month and Year")
+            .setView(dialogView)
+            .setPositiveButton("OK") { _, _ ->
+                val selectedMonth = monthPicker.value
+                val selectedYear = years[yearPicker.value].toInt()
+                callback(selectedMonth, selectedYear)
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+            
+        dialog.setOnShowListener {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setTextColor(resources.getColor(R.color.primary, null))
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).setTextColor(resources.getColor(R.color.primary, null))
+        }
+        
+        dialog.window?.setBackgroundDrawableResource(R.drawable.light_green_dialog_background)
+        dialog.show()
+    }
+    
+    // Update the budget UI with current values
+    private fun updateBudgetUI(budget: MonthlyBudget) {
+        // Reference to the included layout's parent view
+        val budgetSectionView = binding.root.findViewById<View>(R.id.monthlyBudgetSection)
+        
+        // Update total budget amount (sum of all income categories)
+        val totalBudgetAmount = budgetSectionView.findViewById<TextView>(R.id.totalBudgetAmount)
+        val totalIncome = budget.getTotalIncome()
+        totalBudgetAmount.text = currencyFormatter.format(totalIncome)
+        
+        // Calculate total expenses spent from budget
+        val totalExpenses = budget.getTotalExpenses()
+        
+        // Update remaining budget amount (income - expenses)
+        val remainingBudgetAmount = budgetSectionView.findViewById<TextView>(R.id.remainingBudgetAmount)
+        val remaining = budget.getRemainingBudget()
+        remainingBudgetAmount.text = currencyFormatter.format(remaining)
+        
+        // Set color based on remaining amount
+        if (remaining < 0) {
+            remainingBudgetAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.expense_red))
+        } else {
+            remainingBudgetAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
+        }
+        
+        // Update progress bar (percentage of income spent)
+        val progressBar = budgetSectionView.findViewById<android.widget.ProgressBar>(R.id.overallBudgetProgressBar)
+        val progressPercentText = budgetSectionView.findViewById<TextView>(R.id.overallProgressPercentText)
+        
+        val percentage = budget.getPercentageSpent()
+        progressBar.progress = percentage
+        progressPercentText.text = "$percentage%"
+        
+        // Change progress bar color based on percentage
+        if (percentage > 100) {
+            progressBar.progressDrawable = 
+                ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_high)
+        } else if (percentage >= 75) {
+            progressBar.progressDrawable = 
+                ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_medium)
+        } else {
+            progressBar.progressDrawable = 
+                ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_normal)
+        }
+    }
+    
+    // Show a dialog to edit or create a budget item
+    private fun showEditBudgetDialog(budgetItem: BudgetItem?) {
+        val isEditing = budgetItem != null
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_budget, null)
+        
+        // Get dialog views
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
+        val typeRadioGroup = dialogView.findViewById<RadioGroup>(R.id.typeRadioGroup)
+        val incomeRadioButton = dialogView.findViewById<RadioButton>(R.id.incomeRadioButton)
+        val expenseRadioButton = dialogView.findViewById<RadioButton>(R.id.expenseRadioButton)
+        val categorySpinner = dialogView.findViewById<Spinner>(R.id.categorySpinner)
+        val budgetAmountEditText = dialogView.findViewById<EditText>(R.id.budgetAmountEditText)
+        val currentExpensesLayout = dialogView.findViewById<LinearLayout>(R.id.currentExpensesLayout)
+        val currentExpensesTextView = dialogView.findViewById<TextView>(R.id.currentExpensesTextView)
+        val cancelButton = dialogView.findViewById<Button>(R.id.cancelButton)
+        val saveButton = dialogView.findViewById<Button>(R.id.saveButton)
+        
+        // Get all user categories
+        val allCategories = viewModel.categories.value ?: emptyList()
+        
+        // Check if this is a system-generated budget item (like "Other") or a valid user category
+        val isUserCategory = if (isEditing) {
+            val categoryType = if (budgetItem!!.isIncome()) "Income" else "Expense"
+            val userCategories = allCategories.filter { it.type == categoryType }
+            userCategories.any { it.name == budgetItem.categoryName }
+        } else {
+            true // For new items, it's always a user category because they'll select from the spinner
+        }
+        
+        // Set dialog title
+        dialogTitle.text = if (isEditing) "Edit Budget Item" else "Add Budget Item"
+        
+        // Setup type selection
+        if (isEditing) {
+            // Set type for existing item
+            if (budgetItem!!.isIncome()) {
+                incomeRadioButton.isChecked = true
+            } else {
+                expenseRadioButton.isChecked = true
+            }
+            // Disable type change for existing items
+            typeRadioGroup.isEnabled = false
+            incomeRadioButton.isEnabled = false
+            expenseRadioButton.isEnabled = false
+        } else {
+            // Default to expense for new items
+            expenseRadioButton.isChecked = true
+        }
+        
+        // Update category spinner based on selected type
+        updateCategorySpinner(categorySpinner, if (incomeRadioButton.isChecked) "Income" else "Expense")
+        
+        // Listen for type changes
+        typeRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            val type = if (checkedId == R.id.incomeRadioButton) "Income" else "Expense"
+            updateCategorySpinner(categorySpinner, type)
+            
+            // Show/hide expenses section based on type
+            currentExpensesLayout.visibility = if (type == "Expense") View.VISIBLE else View.GONE
+        }
+        
+        // Set initial values if editing
+        if (isEditing) {
+            // Find the position of the category in the spinner using real categories
+            val categoryType = if (budgetItem!!.isIncome()) "Income" else "Expense"
+            val filteredCategories = allCategories.filter { it.type == categoryType }
+            val categoryNames = filteredCategories.map { it.name }
+            
+            // Only try to set selection if it's a user category
+            if (isUserCategory) {
+                val categoryPosition = categoryNames.indexOf(budgetItem.categoryName)
+                if (categoryPosition >= 0) {
+                    categorySpinner.setSelection(categoryPosition)
+                }
+            } else {
+                // For system categories like "Other", display a message
+                Toast.makeText(requireContext(), 
+                    "System category '${budgetItem.categoryName}' cannot be edited. You can adjust the budget amount.", 
+                    Toast.LENGTH_SHORT).show()
+            }
+            
+            // Set budget amount
+            budgetAmountEditText.setText(budgetItem.budgetAmount.toString())
+            
+            // Show current expenses for expense items
+            if (budgetItem.isExpense()) {
+                currentExpensesLayout.visibility = View.VISIBLE
+                currentExpensesTextView.text = currencyFormatter.format(budgetItem.expenseAmount)
+            } else {
+                currentExpensesLayout.visibility = View.GONE
+            }
+            
+            // Disable category selection when editing
+            categorySpinner.isEnabled = false
+            
+            // Hide the category spinner completely if it's not a user category
+            if (!isUserCategory) {
+                dialogView.findViewById<LinearLayout>(R.id.categoryLayout)?.visibility = View.GONE
+                dialogView.findViewById<TextView>(R.id.categoryNameLabel)?.text = 
+                    "Category: ${budgetItem.categoryName}"
+                dialogView.findViewById<TextView>(R.id.categoryNameLabel)?.visibility = View.VISIBLE
+            }
+        } else {
+            // Show/hide expenses section based on initial type
+            currentExpensesLayout.visibility = if (expenseRadioButton.isChecked) View.VISIBLE else View.GONE
+            // Show $0 for expenses when creating a new expense item
+            currentExpensesTextView.text = currencyFormatter.format(0.0)
+        }
+        
+        // Create and show the dialog
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+        
+        // Set click listeners for buttons
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        saveButton.setOnClickListener {
+            val selectedCategory = if (categorySpinner.adapter.count > 0) categorySpinner.selectedItem.toString() else ""
+            val budgetAmount = budgetAmountEditText.text.toString().toDoubleOrNull() ?: 0.0
+            val type = if (incomeRadioButton.isChecked) "Income" else "Expense"
+            
+            if (budgetAmount <= 0) {
+                budgetAmountEditText.error = "Please enter a valid amount"
+                return@setOnClickListener
+            }
+            
+            if (selectedCategory.isEmpty()) {
+                Toast.makeText(requireContext(), "No categories available. Please create categories first.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            
+            // Create or update budget item
+            val currentBudgetInstance = currentBudget ?: budgetRepository.createMockBudget(
+                Calendar.getInstance().get(Calendar.MONTH) + 1,
+                Calendar.getInstance().get(Calendar.YEAR)
+            )
+            
+            if (isEditing) {
+                // Update existing item
+                val updatedItem = BudgetItem(
+                    id = budgetItem!!.id,
+                    categoryName = budgetItem.categoryName,
+                    type = budgetItem.type,
+                    budgetAmount = budgetAmount,
+                    expenseAmount = budgetItem.expenseAmount
+                )
+                budgetRepository.updateBudgetItem(currentBudgetInstance, updatedItem)
+            } else {
+                // Check if category already exists for this type
+                val existingItem = currentBudgetInstance.budgetItems.find { 
+                    it.categoryName == selectedCategory && it.type == type 
+                }
+                
+                if (existingItem != null) {
+                    // Update existing category
+                    val updatedItem = BudgetItem(
+                        id = existingItem.id,
+                        categoryName = existingItem.categoryName,
+                        type = type,
+                        budgetAmount = budgetAmount,
+                        expenseAmount = existingItem.expenseAmount
+                    )
+                    budgetRepository.updateBudgetItem(currentBudgetInstance, updatedItem)
+                } else {
+                    // Create new category budget
+                    val newItem = BudgetItem(
+                        id = System.currentTimeMillis().toString(),
+                        categoryName = selectedCategory,
+                        type = type,
+                        budgetAmount = budgetAmount,
+                        expenseAmount = 0.0
+                    )
+                    budgetRepository.updateBudgetItem(currentBudgetInstance, newItem)
+                }
+            }
+            
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
+    private fun updateCategorySpinner(spinner: Spinner, type: String) {
+        // Get categories from view model instead of hardcoded arrays
+        val allCategories = viewModel.categories.value ?: emptyList()
+        
+        // Filter categories by type (Income or Expense)
+        val filteredCategories = allCategories.filter { it.type == type }
+        
+        // Create a list of category names to display in the spinner
+        val categoryNames = if (filteredCategories.isNotEmpty()) {
+            filteredCategories.map { it.name }
+        } else {
+            // If no categories exist, provide an empty list (don't use hardcoded values)
+            emptyList()
+        }
+        
+        // Inform the user if no categories are available
+        if (categoryNames.isEmpty()) {
+            Toast.makeText(
+                requireContext(), 
+                "No ${type.lowercase()} categories found. Please create some categories first.", 
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        
+        // Create and set adapter
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryNames)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+    }
+    
+    // Check for budget warnings and show notifications
+    private fun checkAndShowBudgetWarnings(warningItems: List<BudgetItem>) {
+        for (item in warningItems) {
+            // Create a unique key for this item and alert type
+            val alertKey = "${item.id}_${if (item.isOverBudget()) "over" else "near"}"
+            
+            // Only show the alert if we haven't shown it before
+            if (alertKey !in shownAlerts) {
+                if (item.isOverBudget()) {
+                    // Show over budget alert
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Budget Alert")
+                        .setIcon(R.drawable.ic_warning)
+                        .setMessage("You've exceeded your budget for ${item.categoryName}. " +
+                                   "Current spending: ${currencyFormatter.format(item.expenseAmount)}, " +
+                                   "Budget: ${currencyFormatter.format(item.budgetAmount)}")
+                        .setPositiveButton("Adjust Budget") { _, _ ->
+                            showEditBudgetDialog(item)
+                        }
+                        .setNegativeButton("Dismiss", null)
+                        .show()
+                    
+                    // Mark this alert as shown
+                    shownAlerts.add(alertKey)
+                } else if (item.isNearLimit()) {
+                    // Show warning for approaching limit
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Budget Warning")
+                        .setIcon(R.drawable.ic_warning)
+                        .setMessage("You're approaching your budget limit for ${item.categoryName}. " +
+                                   "Current spending: ${currencyFormatter.format(item.expenseAmount)} " +
+                                   "(${item.getPercentageSpent()}% of budget)")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    
+                    // Mark this alert as shown
+                    shownAlerts.add(alertKey)
+                }
+            }
+        }
+    }
+    
+    private fun showDeleteBudgetConfirmation(month: Int, year: Int) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete Budget")
+            .setIcon(R.drawable.ic_warning)
+            .setMessage("Are you sure you want to delete the entire budget for ${monthYearFormat.format(Calendar.getInstance().apply {
+                set(Calendar.MONTH, selectedMonth)
+                set(Calendar.YEAR, selectedYear)
+            }.time)}? This action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteBudget(month, year)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun deleteBudget(month: Int, year: Int) {
+        // Delete the budget for the specified month and year
+        budgetRepository.deleteBudget(month, year)
+        
+        // Clear the current budget reference
+        currentBudget = null
+        
+        // Force clear adapter data
+        budgetAdapter.updateBudgetItems(emptyList())
+        
+        // Show success message
+        Toast.makeText(requireContext(), "Budget deleted successfully", Toast.LENGTH_SHORT).show()
+        
+        // Force UI refresh immediately
+        val budgetSectionView = binding.root.findViewById<View>(R.id.monthlyBudgetSection)
+        val noBudgetLayout = budgetSectionView.findViewById<LinearLayout>(R.id.noBudgetLayout)
+        val budgetSummaryLayout = budgetSectionView.findViewById<LinearLayout>(R.id.budgetSummaryLayout)
+        val budgetCategoriesHeaderLayout = budgetSectionView.findViewById<LinearLayout>(R.id.budgetCategoriesHeaderLayout)
+        val overallBudgetProgressLayout = budgetSectionView.findViewById<View>(R.id.overallBudgetProgressLayout)
+        val budgetActionsLayout = budgetSectionView.findViewById<LinearLayout>(R.id.budgetActionsLayout)
+        
+        // Show empty state immediately
+        noBudgetLayout.visibility = View.VISIBLE
+        budgetSummaryLayout.visibility = View.GONE
+        budgetCategoriesHeaderLayout.visibility = View.GONE
+        overallBudgetProgressLayout.visibility = View.GONE
+        budgetActionsLayout?.visibility = View.GONE
+        
+        // Setup create budget button
+        val createBudgetButton = budgetSectionView.findViewById<Button>(R.id.createBudgetButton)
+        createBudgetButton?.visibility = View.VISIBLE
+        createBudgetButton?.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_analyticsFragment_to_budgetSetupFragment,
+                Bundle().apply {
+                    putInt("month", month)
+                    putInt("year", year)
+                    putBoolean("isEditing", false)
+                }
+            )
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Clear shown alerts when fragment is paused
+        shownAlerts.clear()
     }
 }

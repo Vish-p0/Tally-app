@@ -92,8 +92,20 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun setupButtonListeners() {
+        // Notification button click listener
         binding.btnNotification.setOnClickListener {
             Toast.makeText(requireContext(), "Notifications", Toast.LENGTH_SHORT).show()
+        }
+        
+        // Add Category button click listener
+        binding.btnAddCategory.setOnClickListener {
+            showAddCategoryDialog()
+        }
+        
+        // Long press on Add Category button to reset to defaults (hidden feature)
+        binding.btnAddCategory.setOnLongClickListener {
+            showResetCategoriesDialog()
+            true
         }
     }
     
@@ -361,6 +373,28 @@ class CategoriesFragment : Fragment() {
         }
         
         dialog.show()
+    }
+
+    private fun showResetCategoriesDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Reset Categories")
+            .setMessage("This will clear all categories. Continue?")
+            .setPositiveButton("Reset") { _, _ ->
+                viewModel.resetCategoriesToDefaults()
+                Toast.makeText(requireContext(), "Categories cleared", Toast.LENGTH_SHORT).show()
+                refreshCategoriesDisplay()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun refreshCategoriesDisplay() {
+        // Clear adapter data
+        incomeCategoryAdapter.updateCategories(emptyList())
+        expenseCategoryAdapter.updateCategories(emptyList())
+        
+        // Force reload categories
+        viewModel.loadCategories()
     }
 
     override fun onDestroyView() {

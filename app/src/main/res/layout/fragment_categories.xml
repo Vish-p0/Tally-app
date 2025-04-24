@@ -332,4 +332,16 @@
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Add FAB for adding new categories -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnAddCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Add Category"
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/lime_green"
+        app:tint="@color/primary"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

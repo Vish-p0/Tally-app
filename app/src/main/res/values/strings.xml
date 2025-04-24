@@ -71,4 +71,30 @@
         <item>Nov</item>
         <item>Dec</item>
     </string-array>
+
+    <!-- Expense Categories -->
+    <string-array name="expense_categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Entertainment</item>
+        <item>Housing</item>
+        <item>Utilities</item>
+        <item>Shopping</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Travel</item>
+        <item>Others</item>
+    </string-array>
+
+    <!-- Income Categories -->
+    <string-array name="income_categories">
+        <item>Salary</item>
+        <item>Freelance</item>
+        <item>Investments</item>
+        <item>Gifts</item>
+        <item>Pension</item>
+        <item>Business</item>
+        <item>Rental</item>
+        <item>Other Income</item>
+    </string-array>
 </resources>

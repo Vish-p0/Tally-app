@@ -17,4 +17,5 @@
     <color name="gray">#757575</color>
     <color name="light_gray">#EEEEEE</color>
     <color name="delete_red">#FF5151</color>
+    <color name="warning_yellow">#FFC107</color>
 </resources>

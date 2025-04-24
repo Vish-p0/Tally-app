@@ -16,13 +16,23 @@ class FinanceRepository(private val context: Context) {
             val type = object : TypeToken<List<Category>>() {}.type
             gson.fromJson(categoriesJson, type)
         } else {
-            Category.defaultCategories.also { saveCategories(it) }
+            // Return empty list instead of defaultCategories
+            emptyList()
         }
     }
 
     fun saveCategories(categories: List<Category>) {
         val categoriesJson = gson.toJson(categories)
         prefs.edit().putString("categories", categoriesJson).apply()
+    }
+    
+    fun clearCategories() {
+        prefs.edit().remove("categories").apply()
+    }
+
+    fun resetCategoriesToDefaults() {
+        // Since defaultCategories is now empty, this essentially clears categories
+        saveCategories(Category.defaultCategories)
     }
 
     fun getTransactions(): List<Transaction> {
@@ -39,6 +49,10 @@ class FinanceRepository(private val context: Context) {
         val transactionsJson = gson.toJson(transactions)
         prefs.edit().putString("transactions", transactionsJson).apply()
     }
+    
+    fun clearTransactions() {
+        prefs.edit().remove("transactions").apply()
+    }
 
     fun getBudget(): Double {
         return prefs.getFloat("budget", 0f).toDouble()
@@ -46,5 +60,14 @@ class FinanceRepository(private val context: Context) {
 
     fun saveBudget(budget: Double) {
         prefs.edit().putFloat("budget", budget.toFloat()).apply()
+    }
+    
+    fun clearBudget() {
+        prefs.edit().remove("budget").apply()
+    }
+    
+    // Clear all data in the app
+    fun clearAllData() {
+        prefs.edit().clear().apply()
     }
 }

@@ -9,12 +9,7 @@ data class Category(
     val emoji: String
 ) {
     companion object {
-        val defaultCategories = listOf(
-            Category(id = "food", name = "Food", type = "Expense", emoji = "🍕"),
-            Category(id = "transport", name = "Transport", type = "Expense", emoji = "🚗"),
-            Category(id = "rent", name = "Rent", type = "Expense", emoji = "📋"),
-            Category(id = "entertainment", name = "Entertainment", type = "Expense", emoji = "🎉"),
-            Category(id = "salary", name = "Salary", type = "Income", emoji = "💸")
-        )
+        // Empty list of default categories
+        val defaultCategories = emptyList<Category>()
     }
 }
