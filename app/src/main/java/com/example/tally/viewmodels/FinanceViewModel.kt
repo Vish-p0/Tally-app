@@ -33,10 +33,6 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     val budget: LiveData<Double> get() = _budget
 
     init {
-        // Clear all existing categories 
-        // This ensures we start fresh without any previously saved categories
-        repository.clearCategories()
-        
         // Load data
         loadCategories()
         loadTransactions()

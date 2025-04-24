@@ -22,20 +22,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Clear existing categories to start fresh
-        clearCategories()
-
         // Setup NavController
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
         // Link BottomNavigationView to NavController
         findViewById<BottomNavigationView>(R.id.bottom_nav).setupWithNavController(navController)
-    }
-    
-    private fun clearCategories() {
-        // Create repository instance and clear categories
-        val repository = FinanceRepository(applicationContext)
-        repository.clearCategories()
     }
 }
