@@ -88,6 +88,13 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_profileFragment_to_securitySettingsFragment"
+            app:destination="@id/securitySettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
@@ -101,6 +108,15 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_settingsFragment_to_pinSetupFragment"
+            app:destination="@id/pinSetupFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_pinRecoveryFragment"
+            app:destination="@id/pinRecoveryFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_pinEntryFragment"
+            app:destination="@id/pinEntryFragment" />
     </fragment>
     <fragment
         android:id="@+id/addTransactionFragment"
@@ -162,5 +178,69 @@
             app:destination="@id/transactionsFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left" />
+    </fragment>
+
+    <!-- PIN Entry Fragment -->
+    <fragment
+        android:id="@+id/pinEntryFragment"
+        android:name="com.example.tally.fragments.PinEntryFragment"
+        android:label="PinEntryFragment"
+        tools:layout="@layout/fragment_pin_entry">
+        <action
+            android:id="@+id/action_pinEntryFragment_to_pinSetupFragment"
+            app:destination="@id/pinSetupFragment"
+            app:popUpTo="@id/pinEntryFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_pinEntryFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/pinEntryFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_pinEntryFragment_to_pinRecoveryFragment"
+            app:destination="@id/pinRecoveryFragment" />
+    </fragment>
+
+    <!-- PIN Setup Fragment -->
+    <fragment
+        android:id="@+id/pinSetupFragment"
+        android:name="com.example.tally.fragments.PinSetupFragment"
+        android:label="PinSetupFragment"
+        tools:layout="@layout/fragment_pin_setup">
+        <action
+            android:id="@+id/action_pinSetupFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/pinEntryFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- PIN Recovery Fragment -->
+    <fragment
+        android:id="@+id/pinRecoveryFragment"
+        android:name="com.example.tally.fragments.PinRecoveryFragment"
+        android:label="PinRecoveryFragment"
+        tools:layout="@layout/fragment_pin_recovery">
+        <action
+            android:id="@+id/action_pinRecoveryFragment_to_pinSetupFragment"
+            app:destination="@id/pinSetupFragment"
+            app:popUpTo="@id/pinEntryFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Security Settings Fragment -->
+    <fragment
+        android:id="@+id/securitySettingsFragment"
+        android:name="com.example.tally.fragments.SecuritySettingsFragment"
+        android:label="SecuritySettingsFragment"
+        tools:layout="@layout/fragment_security_settings">
+        <action
+            android:id="@+id/action_securitySettingsFragment_to_pinSetupFragment"
+            app:destination="@id/pinSetupFragment" />
+        <action
+            android:id="@+id/action_securitySettingsFragment_to_pinEntryFragment"
+            app:destination="@id/pinEntryFragment" />
+        <action
+            android:id="@+id/action_securitySettingsFragment_to_pinRecoveryFragment"
+            app:destination="@id/pinRecoveryFragment" />
     </fragment>
 </navigation>

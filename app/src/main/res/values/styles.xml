@@ -68,4 +68,16 @@
     <style name="MaterialCalendarDay" parent="Widget.MaterialComponents.MaterialCalendar.Day">
         <item name="itemTextColor">@color/primary</item>
     </style>
+
+    <!-- Style for PIN keypad buttons -->
+    <style name="PinKeypadButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/pin_button_background</item>
+        <item name="rippleColor">@color/ripple_light</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/light_gray</item>
+    </style>
 </resources> 

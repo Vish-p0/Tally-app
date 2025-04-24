@@ -52,7 +52,7 @@ class ProfileFragment : Fragment() {
 
         // Security button
         binding.btnSecurity.setOnClickListener {
-            // Add security functionality
+            findNavController().navigate(R.id.action_profileFragment_to_securitySettingsFragment)
         }
 
         // Help button

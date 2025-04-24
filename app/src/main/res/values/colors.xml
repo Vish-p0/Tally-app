@@ -19,4 +19,11 @@
     <color name="delete_red">#FF5151</color>
     <color name="warning_yellow">#FFC107</color>
     <color name="secondary_text">#757575</color>
+    
+    <!-- Pin entry colors -->
+    <color name="ripple_light">#33000000</color>
+    <color name="pin_indicator_empty">#DDDDDD</color>
+    <color name="pin_indicator_filled">#4CAF50</color>
+    <color name="pin_error_text">#F44336</color>
+    <color name="cooldown_text">#FF9800</color>
 </resources>

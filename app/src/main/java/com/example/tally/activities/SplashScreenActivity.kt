@@ -164,7 +164,10 @@ class SplashScreenActivity : AppCompatActivity() {
     }
 
     private fun startLandingScreenActivity() {
-        val intent = Intent(this, LandingScreenActivity::class.java)
+        // Creating an Activity intent would require creating a new PinEntryActivity
+        // Instead, we'll use MainActivity but pass a flag to show PIN entry first
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("SHOW_PIN_ENTRY", true)
         startActivity(intent)
         finish()
     }

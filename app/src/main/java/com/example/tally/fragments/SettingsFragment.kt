@@ -20,6 +20,7 @@ import com.example.tally.viewmodels.FinanceViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import androidx.lifecycle.ViewModelProvider
+import com.example.tally.utils.PinManager
 
 class SettingsFragment : Fragment() {
 
@@ -27,6 +28,7 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: FinanceViewModel by activityViewModels()
     private lateinit var currencyManager: CurrencyManager
+    private lateinit var pinManager: PinManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,6 +42,7 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         currencyManager = CurrencyManager(requireContext())
+        pinManager = PinManager(requireContext())
 
         // Initialize UI with current settings
         updateCurrencyDisplay()
