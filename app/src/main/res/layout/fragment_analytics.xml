@@ -52,6 +52,26 @@
             android:background="@drawable/top_rounded_background"
             android:padding="16dp">
 
+            <!-- Title for All Incomes and Expenses -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Summary"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"
+                    android:background="@color/lime_green"
+                    android:padding="8dp"
+                    android:gravity="center"/>
+            </androidx.cardview.widget.CardView>
+
             <!-- Time period selector with rounded corners -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -328,32 +348,82 @@
                 app:cardElevation="4dp"
                 app:cardBackgroundColor="@color/light_green">
 
+                <!-- Title bar with rounded corners -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ALL INCOMES AND EXPENSES"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"
+                    android:background="@color/lime_green"
+                    android:padding="8dp"
+                    android:gravity="center"/>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="16dp"
+                    android:layout_marginTop="32dp">
 
-                    <!-- Income & Expenses heading -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Income &amp; Expenses"
-                            android:textSize="18sp"
-                            android:textColor="@color/primary" />
-                    </LinearLayout>
-
-                    <!-- Bar chart -->
+                    <!-- Remove Income & Expenses heading and keep only the chart -->
                     <com.github.mikephil.charting.charts.BarChart
                         android:id="@+id/barChart"
                         android:layout_width="match_parent"
-                        android:layout_height="240dp"
-                        android:layout_marginTop="16dp" />
+                        android:layout_height="240dp" />
+                    
+                    <!-- Legend/Index for chart -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginTop="16dp">
+                        
+                        <!-- Income Legend Item -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginEnd="24dp">
+                            
+                            <View
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:background="@color/link"
+                                android:layout_marginEnd="8dp"/>
+                                
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Income"
+                                android:textSize="14sp"
+                                android:textColor="@color/link"/>
+                        </LinearLayout>
+                        
+                        <!-- Expenses Legend Item -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            
+                            <View
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:background="@color/expense_red"
+                                android:layout_marginEnd="8dp"/>
+                                
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Expenses"
+                                android:textSize="14sp"
+                                android:textColor="@color/expense_red"/>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
