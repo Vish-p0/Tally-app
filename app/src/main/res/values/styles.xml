@@ -46,4 +46,26 @@
         <item name="android:textColor">@color/primary</item>
         <item name="android:textSize">14sp</item>
     </style>
+
+    <style name="MaterialCalendarTheme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="materialCalendarHeaderToggleButton">@color/primary</item>
+        <item name="colorSurface">@color/background</item>
+        <item name="materialCalendarHeaderTitle">@style/MaterialCalendarHeaderTitle</item>
+        <item name="materialCalendarHeaderSelection">@style/MaterialCalendarHeaderSelection</item>
+        <item name="materialCalendarDay">@style/MaterialCalendarDay</item>
+    </style>
+
+    <style name="MaterialCalendarHeaderTitle" parent="Widget.MaterialComponents.MaterialCalendar.HeaderTitle">
+        <item name="android:textColor">@color/primary</item>
+    </style>
+
+    <style name="MaterialCalendarHeaderSelection" parent="Widget.MaterialComponents.MaterialCalendar.HeaderSelection">
+        <item name="android:textColor">@color/primary</item>
+    </style>
+    
+    <style name="MaterialCalendarDay" parent="Widget.MaterialComponents.MaterialCalendar.Day">
+        <item name="itemTextColor">@color/primary</item>
+    </style>
 </resources> 

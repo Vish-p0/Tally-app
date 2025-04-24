@@ -298,11 +298,25 @@ class AddTransactionFragment : Fragment() {
         builder.setTitle("Select ${transactionType} Category")
         builder.setItems(categoryNames) { dialog, which ->
             val selectedCategory = categories[which]
-            showCategoryDetailsDialog(selectedCategory)
+            // Directly select the category instead of showing details dialog
+            selectedCategoryId = selectedCategory.id
+            binding.tvSelectedCategory.text = "${selectedCategory.emoji} ${selectedCategory.name}"
             dialog.dismiss()
         }
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
+        }
+        
+        // Add a "Manage Categories" option
+        builder.setPositiveButton("Manage Categories") { dialog, _ ->
+            dialog.dismiss()
+            // Show the category management dialog with the selected category
+            val selectedCategory = categories.find { it.id == selectedCategoryId }
+            if (selectedCategory != null) {
+                showCategoryDetailsDialog(selectedCategory)
+            } else if (categories.isNotEmpty()) {
+                showCategoryDetailsDialog(categories[0])
+            }
         }
         
         val dialog = builder.create()
@@ -317,7 +331,7 @@ class AddTransactionFragment : Fragment() {
         )
         
         // Set up the dialog
-        builder.setTitle("Category Details")
+        builder.setTitle("Manage Category")
         
         // Create a custom layout for details
         val message = "Name: ${category.name}\n" +
@@ -326,11 +340,9 @@ class AddTransactionFragment : Fragment() {
         
         builder.setMessage(message)
         
-        // Add buttons
-        builder.setPositiveButton("Select") { _, _ ->
-            // Select this category for the transaction
-            selectedCategoryId = category.id
-            binding.tvSelectedCategory.text = "${category.emoji} ${category.name}"
+        // Add buttons - removed "Select" button since this is now for management only
+        builder.setPositiveButton("Done") { dialog, _ ->
+            dialog.dismiss()
         }
         
         builder.setNeutralButton("Edit") { dialog, _ ->
@@ -371,7 +383,7 @@ class AddTransactionFragment : Fragment() {
         )
         
         builder.setTitle("Delete Category")
-        builder.setMessage("Are you sure you want to delete '${category.emoji} ${category.name}'?")
+        builder.setMessage("Are you sure you want to delete the category '${category.emoji} ${category.name}'?")
         
         builder.setPositiveButton("Delete") { _, _ ->
             // Delete the category
