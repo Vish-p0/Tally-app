@@ -28,8 +28,11 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import androidx.navigation.fragment.findNavController
+import com.example.tally.fragments.TransactionSwipeHelper
 
-class TransactionsFragment : Fragment() {
+class TransactionsFragment : Fragment(), 
+    TransactionDetailsDialogFragment.TransactionDialogListener,
+    DeleteConfirmationDialogFragment.DeleteConfirmationListener {
 
     private var _binding: FragmentTransactionsBinding? = null
     private val binding get() = _binding!!
@@ -94,13 +97,24 @@ class TransactionsFragment : Fragment() {
         adapter = TransactionAdapter(
             viewModel = viewModel,
             onItemClick = { transaction ->
-                showTransactionOptions(transaction)
+                showTransactionDetails(transaction)
             }
         )
         binding.rvTransactions.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@TransactionsFragment.adapter
         }
+        
+        // Setup swipe-to-delete
+        val swipeHelper = TransactionSwipeHelper(
+            fragment = this,
+            recyclerView = binding.rvTransactions,
+            adapter = adapter,
+            onShowDeleteDialog = { transaction ->
+                showDeleteConfirmationDialog(transaction.id)
+            }
+        )
+        swipeHelper.setupSwipeToDelete()
     }
 
     private fun setupTabLayout() {
@@ -506,98 +520,35 @@ class TransactionsFragment : Fragment() {
         }
     }
 
-    private fun showTransactionOptions(transaction: Transaction) {
-        val options = arrayOf("Edit", "Delete")
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Transaction Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> showEditTransactionDialog(transaction)
-                    1 -> {
-                        MaterialAlertDialogBuilder(requireContext())
-                            .setTitle("Delete Transaction")
-                            .setMessage("Are you sure you want to delete this transaction?")
-                            .setPositiveButton("Delete") { _, _ ->
-                                viewModel.deleteTransaction(transaction.id)
-                            }
-                            .setNegativeButton("Cancel", null)
-                            .show()
-                    }
-                }
-            }
-            .show()
+    // Show transaction details dialog
+    private fun showTransactionDetails(transaction: Transaction) {
+        val dialog = TransactionDetailsDialogFragment.newInstance(transaction)
+        dialog.show(childFragmentManager, "TransactionDetailsDialog")
     }
-
-    private fun showEditTransactionDialog(transaction: Transaction) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_transaction, null)
-        val titleInput = dialogView.findViewById<TextInputEditText>(R.id.titleInput)
-        val amountInput = dialogView.findViewById<TextInputEditText>(R.id.amountInput)
-        val descriptionInput = dialogView.findViewById<TextInputEditText>(R.id.descriptionInput)
-        val categorySpinner = dialogView.findViewById<android.widget.Spinner>(R.id.categorySpinner)
-        val typeRadioGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.typeRadioGroup)
-        
-        // Get available categories
-        val categories = viewModel.categories.value ?: emptyList()
-        
-        // Setup category spinner
-        val categoryNames = categories.map { "${it.emoji} ${it.name}" }
-        val spinnerAdapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            categoryNames
+    
+    // Show delete confirmation dialog
+    private fun showDeleteConfirmationDialog(transactionId: String) {
+        val dialog = DeleteConfirmationDialogFragment.newInstance(transactionId)
+        dialog.show(childFragmentManager, "DeleteConfirmationDialog")
+    }
+    
+    // TransactionDetailsDialogFragment.TransactionDialogListener implementation
+    override fun onEditTransaction(transaction: Transaction) {
+        // Navigate to AddTransactionFragment with the transaction data for editing
+        val bundle = Bundle().apply {
+            putString("transactionId", transaction.id)
+            putBoolean("isEditing", true)
+        }
+        findNavController().navigate(
+            R.id.action_transactionsFragment_to_addTransactionFragment,
+            bundle
         )
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        categorySpinner.adapter = spinnerAdapter
-        
-        // Store category IDs for later use
-        val categoryIds = categories.map { it.id }
-        
-        // Set current values
-        titleInput.setText(transaction.title)
-        amountInput.setText(String.format(Locale.getDefault(), "%.2f", transaction.amount))
-        descriptionInput.setText(transaction.description)
-        
-        // Set category spinner position
-        val categoryIndex = categoryIds.indexOf(transaction.categoryId)
-        if (categoryIndex >= 0) {
-            categorySpinner.setSelection(categoryIndex)
-        }
-        
-        // Set type radio button
-        if (transaction.type == "Income") {
-            typeRadioGroup.check(R.id.incomeRadio)
-        } else {
-            typeRadioGroup.check(R.id.expenseRadio)
-        }
-        
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Edit Transaction")
-            .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val title = titleInput.text.toString()
-                val amount = amountInput.text.toString().toDoubleOrNull() ?: 0.0
-                val description = descriptionInput.text.toString()
-                val selectedPosition = categorySpinner.selectedItemPosition
-                val categoryId = if (selectedPosition >= 0 && selectedPosition < categoryIds.size) {
-                    categoryIds[selectedPosition]
-                } else {
-                    ""
-                }
-                val type = if (typeRadioGroup.checkedRadioButtonId == R.id.incomeRadio) "Income" else "Expense"
-                
-                if (title.isNotEmpty() && amount > 0 && categoryId.isNotEmpty()) {
-                    val updatedTransaction = transaction.copy(
-                        title = title,
-                        amount = amount,
-                        categoryId = categoryId,
-                        type = type,
-                        description = description
-                    )
-                    viewModel.updateTransaction(updatedTransaction)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    }
+    
+    // DeleteConfirmationDialogFragment.DeleteConfirmationListener implementation
+    override fun onConfirmDelete(transactionId: String) {
+        // Delete the transaction
+        viewModel.deleteTransaction(transactionId)
     }
 
     override fun onDestroyView() {

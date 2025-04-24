@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -32,8 +33,14 @@ class AddTransactionFragment : Fragment() {
     private var selectedCategoryId: String? = null
     private var transactionType = "Expense" // Default to expense
     
+    // Variables for edit mode
+    private var isEditMode = false
+    private var transactionToEdit: Transaction? = null
+    
     companion object {
         const val ARG_TRANSACTION_TYPE = "transaction_type"
+        const val ARG_TRANSACTION_ID = "transactionId"
+        const val ARG_IS_EDITING = "isEditing"
         
         fun newInstance(transactionType: String): AddTransactionFragment {
             val fragment = AddTransactionFragment()
@@ -55,6 +62,38 @@ class AddTransactionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // Check if we're in edit mode
+        isEditMode = arguments?.getBoolean(ARG_IS_EDITING, false) ?: false
+        
+        if (isEditMode) {
+            // Get the transaction ID from arguments and find the transaction
+            val transactionId = arguments?.getString(ARG_TRANSACTION_ID)
+            if (transactionId != null) {
+                loadTransactionForEditing(transactionId)
+            } else {
+                // No transaction ID provided, fallback to adding mode
+                isEditMode = false
+                setupForAddMode()
+            }
+        } else {
+            setupForAddMode()
+        }
+        
+        // Handle back press
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                findNavController().navigateUp()
+            }
+        })
+        
+        // Setup listeners
+        setupBackButton()
+        setupCalendarPicker()
+        setupCategorySelection()
+        setupSaveButton()
+    }
+    
+    private fun setupForAddMode() {
         // Initialize with current date
         updateDateDisplay()
         
@@ -79,23 +118,60 @@ class AddTransactionFragment : Fragment() {
             setupRadioButtons("Expense")
             updateUIForTransactionType(transactionType)
         }
-        
-        // Handle back press
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                findNavController().navigateUp()
+    }
+    
+    private fun loadTransactionForEditing(transactionId: String) {
+        viewModel.transactions.observe(viewLifecycleOwner) { transactions ->
+            val transaction = transactions.find { it.id == transactionId }
+            if (transaction != null) {
+                transactionToEdit = transaction
+                populateFormForEditing(transaction)
+            } else {
+                // Transaction not found, fallback to adding mode
+                isEditMode = false
+                setupForAddMode()
+                Toast.makeText(context, "Transaction not found", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
+    }
+    
+    private fun populateFormForEditing(transaction: Transaction) {
+        // Set transaction type
+        transactionType = transaction.type
+        setupRadioButtons(transaction.type)
         
-        // Setup listeners
-        setupBackButton()
-        setupCalendarPicker()
-        setupCategorySelection()
-        setupSaveButton()
+        // Set title
+        binding.tvFragmentTitle.text = "Edit ${transaction.type}"
+        
+        // Set amount (remove $ sign and format)
+        binding.etAmount.setText(transaction.amount.toString())
+        
+        // Set transaction title
+        binding.etTitle.setText(transaction.title)
+        
+        // Set description
+        binding.etDescription.setText(transaction.description)
+        
+        // Set category
+        selectedCategoryId = transaction.categoryId
+        
+        // Update category name display
+        viewModel.categories.observe(viewLifecycleOwner) { categories ->
+            val category = categories.find { it.id == transaction.categoryId }
+            if (category != null) {
+                binding.tvSelectedCategory.text = "${category.emoji} ${category.name}"
+            }
+        }
+        
+        // Set date
+        if (transaction.date != null) {
+            calendar.timeInMillis = transaction.date
+            updateDateDisplay()
+        }
     }
     
     private fun setupRadioButtons(originalType: String) {
-        // Disable radio buttons based on forcing
+        // Disable radio buttons based on forcing or editing
         if (originalType == "ForceIncome") {
             binding.rbIncome.isChecked = true
             binding.rbExpense.isChecked = false
@@ -107,7 +183,7 @@ class AddTransactionFragment : Fragment() {
             binding.rbIncome.isEnabled = false
             binding.rbExpense.isEnabled = false
         } else {
-            // Handle ALL or regular Income/Expense
+            // Handle ALL or regular Income/Expense, and edit mode
             binding.rbIncome.isEnabled = true
             binding.rbExpense.isEnabled = true
             
@@ -136,10 +212,18 @@ class AddTransactionFragment : Fragment() {
     }
     
     private fun updateUIForTransactionType(type: String) {
-        binding.tvFragmentTitle.text = when (type) {
-            "Income", "ForceIncome" -> "Add Income"
-            "Expense", "ForceExpense" -> "Add Expense"
-            else -> "Add Transaction"
+        if (isEditMode) {
+            binding.tvFragmentTitle.text = when (type) {
+                "Income" -> "Edit Income"
+                "Expense" -> "Edit Expense"
+                else -> "Edit Transaction"
+            }
+        } else {
+            binding.tvFragmentTitle.text = when (type) {
+                "Income", "ForceIncome" -> "Add Income"
+                "Expense", "ForceExpense" -> "Add Expense"
+                else -> "Add Transaction"
+            }
         }
         
         // Clear category selection since categories will change based on type
@@ -212,14 +296,156 @@ class AddTransactionFragment : Fragment() {
             R.style.LightGreenAlertDialogStyle
         )
         builder.setTitle("Select ${transactionType} Category")
-        builder.setSingleChoiceItems(categoryNames, -1) { dialog, which ->
-            selectedCategoryId = categoryIds[which]
-            binding.tvSelectedCategory.text = categoryNames[which]
+        builder.setItems(categoryNames) { dialog, which ->
+            val selectedCategory = categories[which]
+            showCategoryDetailsDialog(selectedCategory)
             dialog.dismiss()
         }
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
         }
+        
+        val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.light_green_dialog_background)
+        dialog.show()
+    }
+    
+    private fun showCategoryDetailsDialog(category: Category) {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(
+            requireContext(),
+            R.style.LightGreenAlertDialogStyle
+        )
+        
+        // Set up the dialog
+        builder.setTitle("Category Details")
+        
+        // Create a custom layout for details
+        val message = "Name: ${category.name}\n" +
+                "Type: ${category.type}\n" +
+                "Emoji: ${category.emoji}"
+        
+        builder.setMessage(message)
+        
+        // Add buttons
+        builder.setPositiveButton("Select") { _, _ ->
+            // Select this category for the transaction
+            selectedCategoryId = category.id
+            binding.tvSelectedCategory.text = "${category.emoji} ${category.name}"
+        }
+        
+        builder.setNeutralButton("Edit") { dialog, _ ->
+            dialog.dismiss()
+            showEditCategoryDialog(category)
+        }
+        
+        // Add a delete button
+        builder.setNegativeButton("Delete") { dialog, _ ->
+            dialog.dismiss()
+            showDeleteCategoryConfirmation(category)
+        }
+        
+        val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.light_green_dialog_background)
+        dialog.show()
+    }
+    
+    private fun showDeleteCategoryConfirmation(category: Category) {
+        // Check if category has transactions
+        val transactions = viewModel.transactions.value ?: emptyList()
+        val hasTransactions = transactions.any { it.categoryId == category.id }
+        
+        if (hasTransactions) {
+            // Show error toast if category has transactions
+            Toast.makeText(
+                requireContext(),
+                "Cannot delete category with existing transactions",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        
+        // Show confirmation dialog
+        val builder = androidx.appcompat.app.AlertDialog.Builder(
+            requireContext(),
+            R.style.LightGreenAlertDialogStyle
+        )
+        
+        builder.setTitle("Delete Category")
+        builder.setMessage("Are you sure you want to delete '${category.emoji} ${category.name}'?")
+        
+        builder.setPositiveButton("Delete") { _, _ ->
+            // Delete the category
+            viewModel.deleteCategory(category.id)
+            
+            // If this was the selected category, clear selection
+            if (selectedCategoryId == category.id) {
+                selectedCategoryId = null
+                binding.tvSelectedCategory.text = "Select the category"
+            }
+            
+            Toast.makeText(context, "Category deleted", Toast.LENGTH_SHORT).show()
+        }
+        
+        builder.setNegativeButton("Cancel", null)
+        
+        val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.light_green_dialog_background)
+        dialog.show()
+    }
+    
+    private fun showEditCategoryDialog(category: Category) {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(
+            requireContext(),
+            R.style.LightGreenAlertDialogStyle
+        )
+        
+        // Inflate custom layout for editing
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_edit_category, null)
+        
+        // Find views in the dialog layout
+        val etCategoryName = dialogView.findViewById<EditText>(R.id.etCategoryName)
+        val etCategoryEmoji = dialogView.findViewById<EditText>(R.id.etCategoryEmoji)
+        
+        // Pre-fill with existing category data
+        etCategoryName.setText(category.name)
+        etCategoryEmoji.setText(category.emoji)
+        
+        builder.setTitle("Edit Category")
+        builder.setView(dialogView)
+        
+        builder.setPositiveButton("Save") { _, _ ->
+            val newName = etCategoryName.text.toString().trim()
+            val newEmoji = etCategoryEmoji.text.toString().trim()
+            
+            if (newName.isEmpty()) {
+                Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
+            
+            if (newEmoji.isEmpty()) {
+                Toast.makeText(context, "Emoji cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
+            
+            // Create updated category
+            val updatedCategory = category.copy(
+                name = newName,
+                emoji = newEmoji
+            )
+            
+            // Update in ViewModel
+            viewModel.updateCategory(updatedCategory)
+            
+            // If this was the selected category, update the display
+            if (selectedCategoryId == category.id) {
+                binding.tvSelectedCategory.text = "${updatedCategory.emoji} ${updatedCategory.name}"
+            }
+            
+            Toast.makeText(context, "Category updated", Toast.LENGTH_SHORT).show()
+        }
+        
+        builder.setNegativeButton("Cancel", null)
         
         val dialog = builder.create()
         dialog.window?.setBackgroundDrawableResource(R.drawable.light_green_dialog_background)
@@ -233,6 +459,11 @@ class AddTransactionFragment : Fragment() {
     }
     
     private fun setupSaveButton() {
+        // Update button text for edit mode
+        if (isEditMode) {
+            binding.btnSave.findViewById<android.widget.TextView>(R.id.btnSaveText).text = "Update"
+        }
+        
         binding.btnSave.setOnClickListener {
             saveTransaction()
         }
@@ -261,18 +492,35 @@ class AddTransactionFragment : Fragment() {
         try {
             val amount = amountStr.toDouble()
             
-            val transaction = Transaction(
-                id = UUID.randomUUID().toString(),
-                title = title,
-                amount = amount,
-                categoryId = selectedCategoryId!!,
-                type = transactionType,
-                description = description,
-                date = calendar.timeInMillis
-            )
+            if (isEditMode && transactionToEdit != null) {
+                // Update existing transaction
+                val updatedTransaction = transactionToEdit!!.copy(
+                    title = title,
+                    amount = amount,
+                    categoryId = selectedCategoryId!!,
+                    description = description,
+                    date = calendar.timeInMillis,
+                    type = transactionType  // Update the transaction type
+                )
+                
+                viewModel.updateTransaction(updatedTransaction)
+                Toast.makeText(context, "Transaction updated", Toast.LENGTH_SHORT).show()
+            } else {
+                // Create new transaction
+                val transaction = Transaction(
+                    id = UUID.randomUUID().toString(),
+                    title = title,
+                    amount = amount,
+                    categoryId = selectedCategoryId!!,
+                    type = transactionType,
+                    description = description,
+                    date = calendar.timeInMillis
+                )
+                
+                viewModel.addTransaction(transaction)
+                Toast.makeText(context, "${transactionType} transaction saved", Toast.LENGTH_SHORT).show()
+            }
             
-            viewModel.addTransaction(transaction)
-            Toast.makeText(context, "${transactionType} transaction saved", Toast.LENGTH_SHORT).show()
             findNavController().navigateUp()
             
         } catch (e: NumberFormatException) {

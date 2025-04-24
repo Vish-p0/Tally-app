@@ -144,4 +144,9 @@ class TransactionAdapter(
             return oldItem == newItem
         }
     }
+    
+    // Helper method to get transaction at a specific position
+    fun getTransactionAt(position: Int): Transaction {
+        return getItem(position)
+    }
 }

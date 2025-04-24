@@ -176,33 +176,95 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun showCategoryOptions(category: Category) {
-        val options = arrayOf("Edit", "Delete")
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Category Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> showEditCategoryDialog(category)
-                    1 -> checkAndDeleteCategory(category)
-                }
-            }
-            .show()
+        showCategoryDetailsDialog(category)
+    }
+    
+    private fun showCategoryDetailsDialog(category: Category) {
+        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.LightGreenAlertDialogStyle)
+        
+        // Create a custom view for the dialog
+        val inflater = LayoutInflater.from(requireContext())
+        val dialogView = inflater.inflate(R.layout.dialog_category_details, null)
+        
+        // Find views in the dialog layout
+        val tvEmojiDisplay = dialogView.findViewById<TextView>(R.id.tvEmojiDisplay)
+        val tvCategoryName = dialogView.findViewById<TextView>(R.id.tvCategoryName)
+        val tvCategoryType = dialogView.findViewById<TextView>(R.id.tvCategoryType)
+        val tvCategoryEmoji = dialogView.findViewById<TextView>(R.id.tvCategoryEmoji)
+        val btnEdit = dialogView.findViewById<MaterialButton>(R.id.btnEdit)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<MaterialButton>(R.id.btnDelete)
+        
+        // Set category details
+        tvEmojiDisplay.text = category.emoji
+        tvCategoryName.text = "Name: ${category.name}"
+        tvCategoryType.text = "Type: ${category.type}"
+        tvCategoryEmoji.text = "Emoji: ${category.emoji}"
+        
+        // Create the dialog
+        val dialog = builder.setView(dialogView).create()
+        
+        // Set button click listeners
+        btnEdit.setOnClickListener {
+            dialog.dismiss()
+            showEditCategoryDialog(category)
+        }
+        
+        btnDelete.setOnClickListener {
+            dialog.dismiss()
+            checkAndDeleteCategory(category)
+        }
+        
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        // Show the dialog
+        dialog.show()
     }
 
     private fun checkAndDeleteCategory(category: Category) {
         val transactions = viewModel.transactions.value ?: emptyList()
         val hasTransactions = transactions.any { it.categoryId == category.id }
+        
         if (hasTransactions) {
             Toast.makeText(requireContext(), "Cannot delete category with existing transactions", Toast.LENGTH_SHORT).show()
-        } else {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Delete Category")
-                .setMessage("Are you sure you want to delete this category?")
-                .setPositiveButton("Delete") { _, _ ->
-                    viewModel.deleteCategory(category.id)
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
+            return
         }
+        
+        // Create custom delete confirmation dialog
+        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.LightGreenAlertDialogStyle)
+        val inflater = LayoutInflater.from(requireContext())
+        val dialogView = inflater.inflate(R.layout.dialog_delete_confirmation, null)
+        
+        // Find views in the dialog layout
+        val tvDeleteTitle = dialogView.findViewById<TextView>(R.id.tvDeleteTitle)
+        val tvDeleteMessage = dialogView.findViewById<TextView>(R.id.tvDeleteMessage)
+        val tvEmojiDisplay = dialogView.findViewById<TextView>(R.id.tvEmojiDisplay)
+        val btnConfirmDelete = dialogView.findViewById<MaterialButton>(R.id.btnConfirmDelete)
+        val btnCancelDelete = dialogView.findViewById<MaterialButton>(R.id.btnCancelDelete)
+        
+        // Set confirmation details
+        tvDeleteTitle.text = "Delete Category"
+        tvDeleteMessage.text = "Are you sure you want to delete this category? This action cannot be undone."
+        tvEmojiDisplay.text = category.emoji
+        
+        // Create and show the dialog
+        val dialog = builder.setView(dialogView).create()
+        
+        // Set button click listeners
+        btnConfirmDelete.setOnClickListener {
+            viewModel.deleteCategory(category.id)
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "Category deleted", Toast.LENGTH_SHORT).show()
+        }
+        
+        btnCancelDelete.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        // Show the dialog
+        dialog.show()
     }
 
     private fun showAddCategoryDialog() {

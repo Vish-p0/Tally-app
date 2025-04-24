@@ -31,7 +31,7 @@
                     android:layout_centerInParent="true"
                     android:text="Transactions"
                     android:textColor="@color/primary"
-                    android:textSize="18sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <ImageButton

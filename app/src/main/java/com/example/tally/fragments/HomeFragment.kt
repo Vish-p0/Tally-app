@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.example.tally.R
 import com.example.tally.adapters.TransactionAdapter
 import com.example.tally.databinding.FragmentHomeBinding
@@ -16,7 +17,7 @@ import com.google.android.material.textfield.TextInputEditText
 import java.util.UUID
 import android.widget.ArrayAdapter
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), TransactionDetailsDialogFragment.TransactionDialogListener {
 
     private lateinit var binding: FragmentHomeBinding
     private val viewModel: FinanceViewModel by activityViewModels()
@@ -36,7 +37,7 @@ class HomeFragment : Fragment() {
         // Setup RecyclerView
         adapter = TransactionAdapter(
             onItemClick = { transaction ->
-                showTransactionOptions(transaction)
+                showTransactionDetails(transaction)
             },
             viewModel = viewModel
         )
@@ -53,8 +54,26 @@ class HomeFragment : Fragment() {
         binding.fabAddTransaction.setOnClickListener {
             showAddTransactionDialog()
         }
+
+        // See All Transactions Button
+        binding.tvSeeAllTransactions.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_transactionsFragment)
+        }
     }
 
+    // Implement the TransactionDialogListener interface
+    override fun onEditTransaction(transaction: Transaction) {
+        // Navigate to AddTransactionFragment with the transaction data for editing
+        val bundle = Bundle().apply {
+            putString("transactionId", transaction.id)
+            putBoolean("isEditing", true)
+        }
+        findNavController().navigate(
+            R.id.action_homeFragment_to_addTransactionFragment,
+            bundle
+        )
+    }
+    
     private fun updateTotalBalance(transactions: List<Transaction>) {
         val total = transactions.sumOf { if (it.type == "Income") it.amount else -it.amount }
         binding.tvTotalBalance.text = "Total Balance: $%.2f".format(total)
@@ -123,97 +142,9 @@ class HomeFragment : Fragment() {
             .show()
     }
     
-    private fun showTransactionOptions(transaction: Transaction) {
-        val options = arrayOf("Edit", "Delete")
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Transaction Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> showEditTransactionDialog(transaction)
-                    1 -> {
-                        MaterialAlertDialogBuilder(requireContext())
-                            .setTitle("Delete Transaction")
-                            .setMessage("Are you sure you want to delete this transaction?")
-                            .setPositiveButton("Delete") { _, _ ->
-                                viewModel.deleteTransaction(transaction.id)
-                            }
-                            .setNegativeButton("Cancel", null)
-                            .show()
-                    }
-                }
-            }
-            .show()
-    }
-    
-    private fun showEditTransactionDialog(transaction: Transaction) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_transaction, null)
-        val titleInput = dialogView.findViewById<TextInputEditText>(R.id.titleInput)
-        val amountInput = dialogView.findViewById<TextInputEditText>(R.id.amountInput)
-        val descriptionInput = dialogView.findViewById<TextInputEditText>(R.id.descriptionInput)
-        val categorySpinner = dialogView.findViewById<android.widget.Spinner>(R.id.categorySpinner)
-        val typeRadioGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.typeRadioGroup)
-        
-        // Get available categories
-        val categories = viewModel.categories.value ?: emptyList()
-        
-        // Setup category spinner
-        val categoryNames = categories.map { "${it.emoji} ${it.name}" }
-        val spinnerAdapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            categoryNames
-        )
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        categorySpinner.adapter = spinnerAdapter
-        
-        // Store category IDs for later use
-        val categoryIds = categories.map { it.id }
-        
-        // Set current values
-        titleInput.setText(transaction.title)
-        amountInput.setText(String.format("%.2f", transaction.amount))
-        descriptionInput.setText(transaction.description)
-        
-        // Set category spinner position
-        val categoryIndex = categoryIds.indexOf(transaction.categoryId)
-        if (categoryIndex >= 0) {
-            categorySpinner.setSelection(categoryIndex)
-        }
-        
-        // Set type radio button
-        if (transaction.type == "Income") {
-            typeRadioGroup.check(R.id.incomeRadio)
-        } else {
-            typeRadioGroup.check(R.id.expenseRadio)
-        }
-        
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Edit Transaction")
-            .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val title = titleInput.text.toString()
-                val amount = amountInput.text.toString().toDoubleOrNull() ?: 0.0
-                val description = descriptionInput.text.toString()
-                val selectedPosition = categorySpinner.selectedItemPosition
-                val categoryId = if (selectedPosition >= 0 && selectedPosition < categoryIds.size) {
-                    categoryIds[selectedPosition]
-                } else {
-                    ""
-                }
-                val type = if (typeRadioGroup.checkedRadioButtonId == R.id.incomeRadio) "Income" else "Expense"
-                
-                if (title.isNotEmpty() && amount > 0 && categoryId.isNotEmpty()) {
-                    val updatedTransaction = transaction.copy(
-                        title = title,
-                        amount = amount,
-                        categoryId = categoryId,
-                        type = type,
-                        description = description
-                    )
-                    viewModel.updateTransaction(updatedTransaction)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun showTransactionDetails(transaction: Transaction) {
+        // Show the transaction details dialog
+        val dialog = TransactionDetailsDialogFragment.newInstance(transaction)
+        dialog.show(childFragmentManager, "TransactionDetailsDialog")
     }
 }

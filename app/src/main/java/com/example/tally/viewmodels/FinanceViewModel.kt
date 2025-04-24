@@ -6,6 +6,8 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tally.models.Category
 import com.example.tally.models.Transaction
@@ -175,6 +177,18 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                 Toast.makeText(context, "Data restored successfully from: ${latestBackup.name}", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Restore failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    companion object {
+        class Factory(private val application: Application) : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(FinanceViewModel::class.java)) {
+                    return FinanceViewModel(application) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
             }
         }
     }
