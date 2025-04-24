@@ -94,7 +94,7 @@ class TransactionDetailsDialogFragment : DialogFragment() {
 
     private fun populateDialog() {
         binding.tvTitle.text = transaction.title
-        binding.tvAmount.text = String.format(Locale.getDefault(), "$%.2f", transaction.amount)
+        binding.tvAmount.text = viewModel.formatAmount(transaction.amount)
         binding.tvType.text = transaction.type
 
         // Format the date - using a local variable to avoid smart cast issues
@@ -122,6 +122,12 @@ class TransactionDetailsDialogFragment : DialogFragment() {
             resources.getColor(R.color.expense_red, null)
         }
         binding.tvAmount.setTextColor(amountColor)
+        
+        // Observe currency changes to update the amount display
+        viewModel.currentCurrency.observe(viewLifecycleOwner) { _ ->
+            // Update the formatted amount when currency changes
+            binding.tvAmount.text = viewModel.formatAmount(transaction.amount)
+        }
     }
 
     private fun setupButtonClickListeners() {

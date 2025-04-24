@@ -91,6 +91,18 @@ class TransactionsFragment : Fragment(),
             }
             findNavController().navigate(R.id.action_transactionsFragment_to_addTransactionFragment, bundle)
         }
+
+        // Observe currency changes
+        viewModel.currentCurrency.observe(viewLifecycleOwner) { _ ->
+            // When currency changes, refresh displayed amounts
+            viewModel.transactions.value?.let { transactions ->
+                updateSummaryAmounts(transactions)
+                
+                // Also refresh the adapter to update transaction amounts
+                adapter.submitList(null)
+                adapter.submitList(filterTransactionsByDate(transactions))
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -269,9 +281,9 @@ class TransactionsFragment : Fragment(),
         val expense = filteredByDate.filter { it.type == "Expense" }.sumOf { it.amount }
         val balance = income - expense
 
-        binding.tvTotalBalance.text = formatCurrency(balance)
-        binding.tvIncomeAmount.text = formatCurrency(income)
-        binding.tvExpenseAmount.text = formatCurrency(expense)
+        binding.tvTotalBalance.text = viewModel.formatAmount(balance)
+        binding.tvIncomeAmount.text = viewModel.formatAmount(income)
+        binding.tvExpenseAmount.text = viewModel.formatAmount(expense)
     }
 
     private fun applyFilters() {

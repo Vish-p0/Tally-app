@@ -63,6 +63,7 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import android.widget.FrameLayout
 import android.util.Log
+import android.widget.ProgressBar
 
 class AnalyticsFragment : Fragment() {
 
@@ -201,6 +202,11 @@ class AnalyticsFragment : Fragment() {
         // Observe budget for changes
         viewModel.budget.observe(viewLifecycleOwner) { budgetValue ->
             budget = budgetValue
+            updateAnalytics()
+        }
+        
+        // Observe currency changes to update all displayed amounts
+        viewModel.currentCurrency.observe(viewLifecycleOwner) { _ ->
             updateAnalytics()
         }
         
@@ -560,8 +566,8 @@ class AnalyticsFragment : Fragment() {
     }
     
     private fun updateBalanceAndExpenseView(balance: Double, expenses: Double) {
-        binding.totalBalance.text = currencyFormatter.format(balance)
-        binding.totalExpenses.text = "-" + currencyFormatter.format(expenses)
+        binding.totalBalance.text = viewModel.formatAmount(balance)
+        binding.totalExpenses.text = "-" + viewModel.formatAmount(expenses)
     }
     
     private fun updateProgressBar(percentage: Int, expenses: Double, income: Double) {
@@ -592,7 +598,7 @@ class AnalyticsFragment : Fragment() {
                 binding.progressMessage.setTextColor(Color.parseColor("#000000"))
                 warningIcon?.setImageResource(R.drawable.check)
                 warningIcon?.setColorFilter(Color.parseColor("#4CAF50"))
-                binding.budgetAmount.text = currencyFormatter.format(income)
+                binding.budgetAmount.text = viewModel.formatAmount(income)
             }
             
             // Medium state: expenses between 50-75% of income - shown in yellow
@@ -607,7 +613,7 @@ class AnalyticsFragment : Fragment() {
                 binding.progressMessage.setTextColor(Color.parseColor("#FFC107"))
                 warningIcon?.setImageResource(R.drawable.warning_icon)
                 warningIcon?.setColorFilter(Color.parseColor("#FFC107"))
-                binding.budgetAmount.text = currencyFormatter.format(income)
+                binding.budgetAmount.text = viewModel.formatAmount(income)
             }
             
             // Warning state: expenses between 75-90% of income - shown in orange
@@ -622,7 +628,7 @@ class AnalyticsFragment : Fragment() {
                 binding.progressMessage.setTextColor(Color.parseColor("#FF9800"))
                 warningIcon?.setImageResource(R.drawable.warning_icon)
                 warningIcon?.setColorFilter(Color.parseColor("#FF9800"))
-                binding.budgetAmount.text = currencyFormatter.format(income)
+                binding.budgetAmount.text = viewModel.formatAmount(income)
             }
             
             // Critical state: expenses between 90-100% or exceeded - shown in red
@@ -635,7 +641,7 @@ class AnalyticsFragment : Fragment() {
                 
                 if (percentage > 100) {
                     val exceededAmount = expenses - income
-                    binding.progressMessage.text = "Budget Exceeded by ${currencyFormatter.format(exceededAmount)}!"
+                    binding.progressMessage.text = "Budget Exceeded by ${viewModel.formatAmount(exceededAmount)}!"
                     binding.progressMessage.setTextColor(Color.parseColor("#F44336"))
                     warningIcon?.setImageResource(R.drawable.warning_icon)
                     warningIcon?.setColorFilter(Color.parseColor("#F44336"))
@@ -645,14 +651,14 @@ class AnalyticsFragment : Fragment() {
                     warningIcon?.setImageResource(R.drawable.warning_icon)
                     warningIcon?.setColorFilter(Color.parseColor("#F44336"))
                 }
-                binding.budgetAmount.text = currencyFormatter.format(income)
+                binding.budgetAmount.text = viewModel.formatAmount(income)
             }
         }
     }
     
     private fun updateIncomeExpenseSummary(income: Double, expenses: Double) {
-        binding.incomeAmount.text = currencyFormatter.format(income)
-        binding.expenseAmount.text = currencyFormatter.format(expenses)
+        binding.incomeAmount.text = viewModel.formatAmount(income)
+        binding.expenseAmount.text = viewModel.formatAmount(expenses)
     }
     
     private fun setupBarChart() {
@@ -1081,7 +1087,7 @@ class AnalyticsFragment : Fragment() {
                 
                 // Add a total amount to the chart description
                 val totalExpenseAmount = expenseByCategory.values.sum()
-                expensePieChart.centerText = "Total\n${currencyFormatter.format(totalExpenseAmount)}"
+                expensePieChart.centerText = "Total\n${viewModel.formatAmount(totalExpenseAmount)}"
                 expensePieChart.invalidate()
             }
         } catch (e: Exception) {
@@ -1186,7 +1192,7 @@ class AnalyticsFragment : Fragment() {
                 
                 // Add a total amount to the chart description
                 val totalIncomeAmount = incomeByCategory.values.sum()
-                incomePieChart.centerText = "Total\n${currencyFormatter.format(totalIncomeAmount)}"
+                incomePieChart.centerText = "Total\n${viewModel.formatAmount(totalIncomeAmount)}"
                 incomePieChart.invalidate()
             }
         } catch (e: Exception) {
@@ -1344,7 +1350,9 @@ class AnalyticsFragment : Fragment() {
                 val sortedExpenseItems = expenseItems.sortedWith(compareBy(
                     // Sort by whether it's "Other" (should be last)
                     { it.categoryName.equals("Other", ignoreCase = true) },
-                    // Then by name
+                    // Then by budget amount (higher budget amounts first)
+                    { -it.budgetAmount },
+                    // Then by name for equal budget amounts
                     { it.categoryName }
                 ))
                 
@@ -1429,7 +1437,9 @@ class AnalyticsFragment : Fragment() {
             val sortedExpenseItems = expenseItems.sortedWith(compareBy(
                 // Sort by whether it's "Other" (should be last)
                 { it.categoryName.equals("Other", ignoreCase = true) },
-                // Then by name
+                // Then by budget amount (higher budget amounts first)
+                { -it.budgetAmount },
+                // Then by name for equal budget amounts
                 { it.categoryName }
             ))
             
@@ -1495,7 +1505,7 @@ class AnalyticsFragment : Fragment() {
         // Update total budget amount (sum of all income categories)
         val totalBudgetAmount = budgetSectionView.findViewById<TextView>(R.id.totalBudgetAmount)
         val totalIncome = budget.getTotalIncome()
-        totalBudgetAmount.text = currencyFormatter.format(totalIncome)
+        totalBudgetAmount.text = viewModel.formatAmount(totalIncome)
         
         // Calculate total expenses spent from budget
         val totalExpenses = budget.getTotalExpenses()
@@ -1503,7 +1513,7 @@ class AnalyticsFragment : Fragment() {
         // Update remaining budget amount (income - expenses)
         val remainingBudgetAmount = budgetSectionView.findViewById<TextView>(R.id.remainingBudgetAmount)
         val remaining = budget.getRemainingBudget()
-        remainingBudgetAmount.text = currencyFormatter.format(remaining)
+        remainingBudgetAmount.text = viewModel.formatAmount(remaining)
         
         // Set color based on remaining amount
         if (remaining < 0) {
@@ -1620,7 +1630,7 @@ class AnalyticsFragment : Fragment() {
             // Show current expenses for expense items
             if (budgetItem.isExpense()) {
                 currentExpensesLayout.visibility = View.VISIBLE
-                currentExpensesTextView.text = currencyFormatter.format(budgetItem.expenseAmount)
+                currentExpensesTextView.text = viewModel.formatAmount(budgetItem.expenseAmount)
             } else {
                 currentExpensesLayout.visibility = View.GONE
             }
@@ -1639,7 +1649,7 @@ class AnalyticsFragment : Fragment() {
             // Show/hide expenses section based on initial type
             currentExpensesLayout.visibility = if (expenseRadioButton.isChecked) View.VISIBLE else View.GONE
             // Show $0 for expenses when creating a new expense item
-            currentExpensesTextView.text = currencyFormatter.format(0.0)
+            currentExpensesTextView.text = viewModel.formatAmount(0.0)
         }
         
         // Create and show the dialog
@@ -1763,8 +1773,8 @@ class AnalyticsFragment : Fragment() {
                         .setTitle("Budget Alert")
                         .setIcon(R.drawable.ic_warning)
                         .setMessage("You've exceeded your budget for ${item.categoryName}. " +
-                                   "Current spending: ${currencyFormatter.format(item.expenseAmount)}, " +
-                                   "Budget: ${currencyFormatter.format(item.budgetAmount)}")
+                                   "Current spending: ${viewModel.formatAmount(item.expenseAmount)}, " +
+                                   "Budget: ${viewModel.formatAmount(item.budgetAmount)}")
                         .setPositiveButton("Adjust Budget") { _, _ ->
                             showEditBudgetDialog(item)
                         }
@@ -1779,7 +1789,7 @@ class AnalyticsFragment : Fragment() {
                         .setTitle("Budget Warning")
                         .setIcon(R.drawable.ic_warning)
                         .setMessage("You're approaching your budget limit for ${item.categoryName}. " +
-                                   "Current spending: ${currencyFormatter.format(item.expenseAmount)} " +
+                                   "Current spending: ${viewModel.formatAmount(item.expenseAmount)} " +
                                    "(${item.getPercentageSpent()}% of budget)")
                         .setPositiveButton("OK", null)
                         .show()

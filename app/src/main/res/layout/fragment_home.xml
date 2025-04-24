@@ -35,14 +35,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Hi, Welcome Back,"
-                    android:textSize="18sp"
+                android:textSize="18sp"
                     android:textColor="@color/primary"
-                    android:textStyle="bold" />
+                android:textStyle="bold" />
 
-                <TextView
+            <TextView
                     android:id="@+id/tvGreeting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                     android:text="Good Morning"
                     android:textSize="22sp"
                     android:textColor="@color/primary"
@@ -189,7 +189,7 @@
 
                             <TextView
                                 android:id="@+id/tvExpense"
-                                android:layout_width="wrap_content"
+            android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="-$0.00"
                                 android:textSize="18sp"
@@ -303,7 +303,7 @@
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+            android:layout_marginTop="16dp"
                     android:background="@drawable/progress_background"
                     android:padding="2dp">
 

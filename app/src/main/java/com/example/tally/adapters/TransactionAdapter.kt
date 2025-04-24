@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -120,17 +121,19 @@ class TransactionAdapter(
             
             // Format and set amount (positive for income, negative for expense)
             val amountText = if (transaction.type == "Income") {
-                formatCurrency(transaction.amount)
+                viewModel.formatAmount(transaction.amount)
             } else {
-                "-${formatCurrency(transaction.amount)}"
+                "-${viewModel.formatAmount(transaction.amount)}"
             }
             tvAmount.text = amountText
             
             // Set amount text color based on transaction type
             tvAmount.setTextColor(
-                itemView.context.getColor(
-                    if (transaction.type == "Income") R.color.income_green else R.color.expense_red
-                )
+                if (transaction.type == "Income") {
+                    ContextCompat.getColor(itemView.context, R.color.link)
+                } else {
+                    ContextCompat.getColor(itemView.context, R.color.expense_red)
+                }
             )
         }
     }

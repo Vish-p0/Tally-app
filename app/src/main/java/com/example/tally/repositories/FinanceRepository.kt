@@ -1,6 +1,7 @@
 package com.example.tally.repositories
 
 import android.content.Context
+import com.example.tally.models.BudgetItem
 import com.example.tally.models.Category
 import com.example.tally.models.Transaction
 import com.google.gson.Gson
@@ -64,6 +65,26 @@ class FinanceRepository(private val context: Context) {
     
     fun clearBudget() {
         prefs.edit().remove("budget").apply()
+    }
+    
+    // Budget Items methods
+    fun getAllBudgetItems(): List<BudgetItem> {
+        val budgetItemsJson = prefs.getString("budget_items", null)
+        return if (budgetItemsJson != null) {
+            val type = object : TypeToken<List<BudgetItem>>() {}.type
+            gson.fromJson(budgetItemsJson, type)
+        } else {
+            emptyList()
+        }
+    }
+    
+    fun saveBudgetItems(budgetItems: List<BudgetItem>) {
+        val budgetItemsJson = gson.toJson(budgetItems)
+        prefs.edit().putString("budget_items", budgetItemsJson).apply()
+    }
+    
+    fun clearBudgetItems() {
+        prefs.edit().remove("budget_items").apply()
     }
     
     // Clear all data in the app

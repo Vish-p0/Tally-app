@@ -9,7 +9,6 @@ android {
 
     buildFeatures {
         viewBinding = true // Required for fragments and UI components
-        dataBinding = true // Required for custom binding adapters
     }
 
     defaultConfig {
@@ -63,9 +62,6 @@ dependencies {
 
     // JSON Serialization (Gson)
     implementation(libs.gson)
-    
-    // CircleImageView for profile images
-    implementation(libs.circleimageview)
 
     // Testing
     testImplementation(libs.junit)

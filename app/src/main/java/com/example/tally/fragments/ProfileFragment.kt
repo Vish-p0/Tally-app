@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.example.tally.R
 import com.example.tally.activities.LoginActivity
 import com.example.tally.databinding.FragmentProfileBinding
@@ -30,41 +31,34 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Backup/Restore
-        binding.btnBackup.setOnClickListener {
-            showBackupConfirmationDialog()
+        setupClickListeners()
+    }
+
+    private fun setupClickListeners() {
+        // Settings button
+        binding.btnSettings.setOnClickListener {
+            findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)
         }
 
-        binding.btnRestore.setOnClickListener {
-            showRestoreConfirmationDialog()
+        // Edit Profile button
+        binding.btnEditProfile.setOnClickListener {
+            // Add edit profile functionality
         }
 
-        // Logout
+        // Security button
+        binding.btnSecurity.setOnClickListener {
+            // Add security functionality
+        }
+
+        // Help button
+        binding.btnHelp.setOnClickListener {
+            // Add help functionality
+        }
+
+        // Logout button
         binding.btnLogout.setOnClickListener {
             showLogoutConfirmationDialog()
         }
-    }
-
-    private fun showBackupConfirmationDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Backup Data")
-            .setMessage("Do you want to create a backup of your data?")
-            .setPositiveButton("Backup") { _, _ ->
-                viewModel.backupData(requireContext())
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showRestoreConfirmationDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Restore Data")
-            .setMessage("This will replace all your current data with the most recent backup. Are you sure?")
-            .setPositiveButton("Restore") { _, _ ->
-                viewModel.restoreData(requireContext())
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     private fun showLogoutConfirmationDialog() {

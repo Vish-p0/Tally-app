@@ -161,18 +161,27 @@ class CategoriesFragment : Fragment() {
             updateTotalBalance(transactions)
             updateExpenseInfo(transactions)
         }
+        
+        // Observe currency changes to update the financial data
+        viewModel.currentCurrency.observe(viewLifecycleOwner) { _ ->
+            // When currency changes, refresh displayed amounts
+            viewModel.transactions.value?.let { transactions ->
+                updateTotalBalance(transactions)
+                updateExpenseInfo(transactions)
+            }
+        }
     }
 
     private fun updateTotalBalance(transactions: List<Transaction>) {
         val totalBalance = transactions.sumOf { 
             if (it.type == "Income") it.amount else -it.amount 
         }
-        binding.tvTotalBalance.text = String.format("$%,.2f", totalBalance)
+        binding.tvTotalBalance.text = viewModel.formatAmount(totalBalance)
     }
 
     private fun updateExpenseInfo(transactions: List<Transaction>) {
         val totalExpense = transactions.filter { it.type == "Expense" }.sumOf { it.amount }
-        binding.tvTotalExpense.text = String.format("-$%,.2f", totalExpense)
+        binding.tvTotalExpense.text = "-" + viewModel.formatAmount(totalExpense)
     }
 
     private fun observeCategories() {

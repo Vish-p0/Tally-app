@@ -1,5 +1,6 @@
 package com.example.tally.utils
 
+import android.content.Context
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,8 +32,21 @@ object DateFormatter {
 }
 
 /**
- * Formats a number as currency
+ * Formats a number as currency using the app's CurrencyManager
+ * 
+ * @param context The context to get CurrencyManager from
+ * @param amount The amount to format
+ * @return The formatted amount string with appropriate currency symbol
  */
+fun formatCurrency(context: Context, amount: Double): String {
+    return CurrencyManager(context).formatAmount(amount)
+}
+
+/**
+ * Backward compatibility method for existing code
+ * @deprecated Use formatCurrency(context, amount) instead
+ */
+@Deprecated("Use the version with context parameter", ReplaceWith("formatCurrency(context, amount)"))
 fun formatCurrency(amount: Double): String {
     val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
     return format.format(amount)

@@ -44,7 +44,20 @@
         android:name="com.example.tally.fragments.CategoriesFragment" />
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.example.tally.fragments.ProfileFragment" />
+        android:name="com.example.tally.fragments.ProfileFragment">
+        <action
+            android:id="@+id/action_profileFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.tally.fragments.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings" />
     <fragment
         android:id="@+id/addTransactionFragment"
         android:name="com.example.tally.fragments.AddTransactionFragment">

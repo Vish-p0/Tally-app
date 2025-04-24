@@ -132,6 +132,20 @@ class HomeFragment : Fragment() {
         budgetRepository.getBudgetForMonth(currentMonth, currentYear).observe(viewLifecycleOwner) { budget ->
             updateBudgetSection(budget)
         }
+        
+        // Observe currency changes
+        viewModel.currentCurrency.observe(viewLifecycleOwner) { _ ->
+            // When currency changes, update all displayed amounts
+            viewModel.transactions.value?.let { transactions ->
+                updateFinancialSummary(transactions)
+                updateRecentTransactions(transactions)
+            }
+            
+            // Update budget section when currency changes
+            budgetRepository.getBudgetForMonth(currentMonth, currentYear).value?.let { budget ->
+                updateBudgetSection(budget)
+            }
+        }
     }
     
     private fun updateFinancialSummary(transactions: List<Transaction>) {
@@ -163,17 +177,17 @@ class HomeFragment : Fragment() {
             
         val currentBalance = totalIncome - totalExpenses
         
-        // Update UI
-        tvCurrentBalance.text = currencyFormatter.format(currentBalance)
-        tvIncome.text = "+${currencyFormatter.format(totalIncome)}"
-        tvExpense.text = "-${currencyFormatter.format(totalExpenses)}"
+        // Update UI using the viewModel's formatAmount method
+        tvCurrentBalance.text = viewModel.formatAmount(currentBalance)
+        tvIncome.text = "+${viewModel.formatAmount(totalIncome)}"
+        tvExpense.text = "-${viewModel.formatAmount(totalExpenses)}"
     }
     
     private fun updateBudgetSection(budget: MonthlyBudget?) {
         if (budget == null || budget.budgetItems.isEmpty()) {
             // No budget set up yet
-            tvTotalBudget.text = currencyFormatter.format(0.0)
-            tvBudgetExpenses.text = currencyFormatter.format(0.0)
+            tvTotalBudget.text = viewModel.formatAmount(0.0)
+            tvBudgetExpenses.text = viewModel.formatAmount(0.0)
             budgetProgressBar.progress = 0
             budgetProgressText.text = "0%"
             budgetStatusText.text = "No budget set up. Create a budget to track expenses."
@@ -186,38 +200,28 @@ class HomeFragment : Fragment() {
         val totalExpenses = budget.getTotalExpenses()
         val percentage = budget.getPercentageSpent()
         
-        // Update UI
-        tvTotalBudget.text = currencyFormatter.format(totalIncome)
-        tvBudgetExpenses.text = "-${currencyFormatter.format(totalExpenses)}"
+        // Update UI with the viewModel's formatAmount method
+        tvTotalBudget.text = viewModel.formatAmount(totalIncome)
+        tvBudgetExpenses.text = "-${viewModel.formatAmount(totalExpenses)}"
         budgetProgressBar.progress = percentage
         budgetProgressText.text = "$percentage%"
         
         // Update progress bar and status based on percentage
-        when {
-            percentage > 100 -> {
-                // Over budget
-                budgetProgressBar.progressDrawable = 
-                    ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_high)
-                budgetStatusIcon.setImageResource(R.drawable.ic_warning)
-                budgetStatusText.text = "Over budget! ${percentage}% spent."
-                budgetStatusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.expense_red))
-            }
-            percentage >= 75 -> {
-                // Approaching limit
-                budgetProgressBar.progressDrawable = 
-                    ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_medium)
-                budgetStatusIcon.setImageResource(R.drawable.ic_warning)
-                budgetStatusText.text = "Approaching limit! ${percentage}% spent."
-                budgetStatusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.warning_yellow))
-            }
-            else -> {
-                // Under budget
-                budgetProgressBar.progressDrawable = 
-                    ContextCompat.getDrawable(requireContext(), R.drawable.progress_bar_normal)
-                budgetStatusIcon.setImageResource(R.drawable.check)
-                budgetStatusText.text = "You're doing great! ${percentage}% spent."
-                budgetStatusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
-            }
+        if (percentage > 100) {
+            // Over budget
+            budgetStatusText.text = "Over budget! Consider reducing expenses."
+            budgetStatusIcon.setImageResource(R.drawable.ic_warning)
+            budgetStatusIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.expense_red))
+        } else if (percentage >= 80) {
+            // Approaching budget limit
+            budgetStatusText.text = "Approaching budget limit. Be cautious!"
+            budgetStatusIcon.setImageResource(R.drawable.ic_warning)
+            budgetStatusIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.warning_yellow))
+        } else {
+            // Within budget
+            budgetStatusText.text = "Within budget. Good job!"
+            budgetStatusIcon.setImageResource(R.drawable.check)
+            budgetStatusIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.income_green))
         }
     }
     
@@ -268,10 +272,10 @@ class HomeFragment : Fragment() {
         
         // Set amount and color based on transaction type
         if (transaction.type == "Income") {
-            tvTransactionAmount.text = "+${currencyFormatter.format(transaction.amount)}"
+            tvTransactionAmount.text = "+${viewModel.formatAmount(transaction.amount)}"
             tvTransactionAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.link))
         } else {
-            tvTransactionAmount.text = "-${currencyFormatter.format(transaction.amount)}"
+            tvTransactionAmount.text = "-${viewModel.formatAmount(transaction.amount)}"
             tvTransactionAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.expense_red))
         }
         
