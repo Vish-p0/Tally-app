@@ -3,11 +3,11 @@ package com.example.tally.models
 import java.util.UUID
 
 data class Transaction(
-    val id: String = UUID.randomUUID().toString(),
-    val title: String? = "",
+    val id: String,
+    val title: String,
     val amount: Double,
-    val categoryId: String? = "",
-    val date: Long = System.currentTimeMillis(),
-    val type: String? = "Expense", // "Income" or "Expense"
-    val description: String? = "" // Optional description field
+    val categoryId: String,
+    val type: String, // "Income" or "Expense"
+    val description: String = "",
+    val date: Long? = null // Timestamp in milliseconds
 )

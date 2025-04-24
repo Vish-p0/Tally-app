@@ -9,7 +9,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/primary">
+        android:background="@color/lime_green">
 
         <!-- Modern Top App Bar -->
         <com.google.android.material.appbar.AppBarLayout
@@ -27,25 +27,11 @@
                 android:layout_height="?attr/actionBarSize"
                 android:paddingHorizontal="16dp">
 
-                <ImageButton
-                    android:id="@+id/btnBack"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Back"
-                    android:padding="4dp"
-                    android:scaleType="fitCenter"
-                    android:src="@android:drawable/ic_menu_revert"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="#FFFFFF" />
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Categories"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/primary"
                     android:textSize="22sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -82,7 +68,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                app:cardBackgroundColor="#33FFFFFF"
+                app:cardBackgroundColor="@color/background"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:layout_constraintEnd_toStartOf="@+id/totalExpenseCard"
@@ -98,11 +84,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:drawableStart="@android:drawable/ic_menu_info_details"
+                        android:drawableStart="@drawable/up"
                         android:drawablePadding="8dp"
-                        android:drawableTint="#FFFFFF"
+                        android:drawableTint="@color/primary"
                         android:text="Total Balance"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/primary"
                         android:textSize="14sp" />
 
                     <TextView
@@ -111,7 +97,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="$12,780.00"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/link"
                         android:textSize="22sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -122,7 +108,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                app:cardBackgroundColor="#33FFFFFF"
+                app:cardBackgroundColor="@color/background"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -138,11 +124,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:drawableStart="@android:drawable/ic_menu_info_details"
+                        android:drawableStart="@drawable/down"
                         android:drawablePadding="8dp"
-                        android:drawableTint="#FFFFFF"
+                        android:drawableTint="@color/primary"
                         android:text="Total Expense"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/primary"
                         android:textSize="14sp" />
 
                     <TextView
@@ -151,7 +137,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="-$220.00"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/expense_red"
                         android:textSize="22sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -289,7 +275,7 @@
                                     android:layout_height="wrap_content"
                                     android:padding="12dp"
                                     android:text="Income Categories"
-                                    android:textColor="@color/white"
+                                    android:textColor="@color/primary"
                                     android:textSize="16sp"
                                     android:gravity="center"
                                     android:textStyle="bold" />
@@ -324,7 +310,7 @@
                                     android:layout_height="wrap_content"
                                     android:padding="12dp"
                                     android:text="Expense Categories"
-                                    android:textColor="@color/white"
+                                    android:textColor="@color/primary"
                                     android:textSize="16sp"
                                     android:gravity="center"
                                     android:textStyle="bold" />
@@ -345,17 +331,5 @@
             </FrameLayout>
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Floating Action Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddCategory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
-        android:contentDescription="Add Category"
-        app:backgroundTint="@color/lime_green"
-        app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

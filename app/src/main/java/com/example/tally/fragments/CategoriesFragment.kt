@@ -92,16 +92,8 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun setupButtonListeners() {
-        binding.btnBack.setOnClickListener {
-            findNavController().navigateUp()
-        }
-        
         binding.btnNotification.setOnClickListener {
             Toast.makeText(requireContext(), "Notifications", Toast.LENGTH_SHORT).show()
-        }
-        
-        binding.fabAddCategory.setOnClickListener {
-            showAddCategoryDialog()
         }
     }
     

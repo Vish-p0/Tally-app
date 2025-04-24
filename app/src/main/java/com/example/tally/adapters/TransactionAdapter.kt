@@ -5,122 +5,133 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tally.databinding.ItemTransactionBinding
+import com.example.tally.R
+import com.example.tally.models.Category
 import com.example.tally.models.Transaction
+import com.example.tally.utils.DateFormatter
+import com.example.tally.utils.formatCurrency
 import com.example.tally.viewmodels.FinanceViewModel
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class TransactionAdapter(
     private val viewModel: FinanceViewModel,
     private val onItemClick: (Transaction) -> Unit
-) : ListAdapter<Transaction, TransactionAdapter.ViewHolder>(TransactionDiffCallback()), Filterable {
+) : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()), Filterable {
 
-    private var allTransactions = listOf<Transaction>()
-    private var filteredTransactions = listOf<Transaction>()
+    private var originalList: List<Transaction> = emptyList()
+    private var filteredList: List<Transaction> = emptyList()
+    private var categoryMap: Map<String, Category> = emptyMap()
+
+    init {
+        viewModel.categories.observeForever { categories ->
+            categoryMap = categories.associateBy { it.id }
+            notifyDataSetChanged()
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_transaction, parent, false)
+        return TransactionViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
+        val transaction = getItem(position)
+        holder.bind(transaction)
+    }
+
+    override fun submitList(list: List<Transaction>?) {
+        originalList = list ?: emptyList()
+        filteredList = originalList
+        super.submitList(filteredList)
+    }
 
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val query = constraint?.toString()?.toLowerCase(Locale.getDefault()) ?: ""
-                val filteredList = if (query.isEmpty()) {
-                    allTransactions
+                val query = constraint?.toString()?.lowercase() ?: ""
+                
+                val filtered = if (query.isEmpty()) {
+                    originalList
                 } else {
-                    allTransactions.filter { transaction ->
-                        (transaction.title ?: "").toLowerCase(Locale.getDefault()).contains(query) ||
-                        (transaction.description ?: "").toLowerCase(Locale.getDefault()).contains(query) ||
-                        (transaction.categoryId ?: "").toLowerCase(Locale.getDefault()).contains(query) ||
-                        (transaction.type ?: "").toLowerCase(Locale.getDefault()).contains(query)
+                    originalList.filter { transaction ->
+                        transaction.title.lowercase().contains(query) ||
+                        transaction.description.lowercase().contains(query) ||
+                        categoryMap[transaction.categoryId]?.name?.lowercase()?.contains(query) == true
                     }
                 }
+                
                 return FilterResults().apply {
-                    values = filteredList
-                    count = filteredList.size
+                    values = filtered
+                    count = filtered.size
                 }
             }
 
+            @Suppress("UNCHECKED_CAST")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                filteredTransactions = results?.values as? List<Transaction> ?: emptyList()
-                submitList(filteredTransactions)
+                filteredList = results?.values as? List<Transaction> ?: emptyList()
+                super@TransactionAdapter.submitList(filteredList)
             }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemTransactionBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ViewHolder(binding)
-    }
+    inner class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvCategoryEmoji: TextView = itemView.findViewById(R.id.tvCategoryEmoji)
+        private val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
+        private val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
+        private val tvCategory: TextView = itemView.findViewById(R.id.tvCategory)
+        private val tvAmount: TextView = itemView.findViewById(R.id.tvAmount)
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
-
-    override fun submitList(list: List<Transaction>?) {
-        allTransactions = list ?: emptyList()
-        super.submitList(list)
-    }
-
-    inner class ViewHolder(private val binding: ItemTransactionBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick(getItem(position))
+                }
+            }
+        }
 
         fun bind(transaction: Transaction) {
-            binding.apply {
-                // Format the title with date
-                val dateStr = SimpleDateFormat("MMM dd", Locale.getDefault())
-                    .format(transaction.date)
-                
-                // Set the title text
-                val title = transaction.title ?: ""
-                tvTitle.text = if (title.isNotEmpty()) {
-                    "$dateStr - $title"
-                } else {
-                    dateStr
-                }
-                
-                // Set the description if available
-                val description = transaction.description ?: ""
-                if (description.isNotEmpty()) {
-                    tvDescription.text = description
-                    tvDescription.visibility = View.VISIBLE
-                } else {
-                    tvDescription.visibility = View.GONE
-                }
-                
-                tvAmount.text = String.format("$%.2f", transaction.amount)
-
-                // Handle category display
-                try {
-                    val categoryId = transaction.categoryId ?: ""
-                    val category = if (categoryId.isNotEmpty()) viewModel.getCategoryById(categoryId) else null
-                    if (category != null) {
-                        tvCategory.text = "${category.emoji} ${category.name}"
-                        tvCategory.visibility = View.VISIBLE
-                    } else {
-                        tvCategory.text = "Unknown Category"
-                        tvCategory.visibility = View.VISIBLE
-                    }
-                } catch (e: Exception) {
-                    tvCategory.text = "Unknown Category"
-                    tvCategory.visibility = View.VISIBLE
-                }
-
-                // Set type-specific styling
-                val type = transaction.type ?: "Expense"
-                if (type == "Income") {
-                    tvAmount.setTextColor(root.context.getColor(android.R.color.holo_green_dark))
-                } else {
-                    tvAmount.setTextColor(root.context.getColor(android.R.color.holo_red_dark))
-                }
-
-                root.setOnClickListener { onItemClick(transaction) }
+            val category = categoryMap[transaction.categoryId]
+            
+            // Set category emoji
+            tvCategoryEmoji.text = category?.emoji ?: "🔍"
+            
+            // Set transaction title
+            tvTitle.text = transaction.title
+            
+            // Format and display date
+            transaction.date?.let {
+                val date = Date(it)
+                val formatter = SimpleDateFormat("HH:mm - MMM dd", Locale.getDefault())
+                tvTimestamp.text = formatter.format(date)
+            } ?: run {
+                tvTimestamp.text = "N/A"
             }
+            
+            // Set category name
+            tvCategory.text = category?.name ?: "Unknown"
+            
+            // Format and set amount (positive for income, negative for expense)
+            val amountText = if (transaction.type == "Income") {
+                formatCurrency(transaction.amount)
+            } else {
+                "-${formatCurrency(transaction.amount)}"
+            }
+            tvAmount.text = amountText
+            
+            // Set amount text color based on transaction type
+            tvAmount.setTextColor(
+                itemView.context.getColor(
+                    if (transaction.type == "Income") R.color.income_green else R.color.expense_red
+                )
+            )
         }
     }
 

@@ -9,5 +9,11 @@
     <color name="light_grey">#FFA0B0A8</color>
     <color name="light_green">#FFDFF7E2</color>
     <color name="lime_green">#FF00D09E</color>
-
+    
+    <!-- New colors for transactions -->
+    <color name="income_green">#43A047</color>
+    <color name="expense_red">#E53935</color>
+    <color name="dark_gray">#424242</color>
+    <color name="gray">#757575</color>
+    <color name="light_gray">#EEEEEE</color>
 </resources>

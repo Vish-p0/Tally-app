@@ -4,18 +4,54 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.tally.fragments.HomeFragment" />
+        android:name="com.example.tally.fragments.HomeFragment">
+        <action
+            android:id="@+id/action_homeFragment_to_addTransactionFragment"
+            app:destination="@id/addTransactionFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
     <fragment
         android:id="@+id/analyticsFragment"
         android:name="com.example.tally.fragments.AnalyticsFragment" />
     <fragment
         android:id="@+id/transactionsFragment"
-        android:name="com.example.tally.fragments.TransactionsFragment" />
+        android:name="com.example.tally.fragments.TransactionsFragment">
+        <action
+            android:id="@+id/action_transactionsFragment_to_addTransactionFragment"
+            app:destination="@id/addTransactionFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
     <fragment
         android:id="@+id/categoriesFragment"
         android:name="com.example.tally.fragments.CategoriesFragment" />
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.tally.fragments.ProfileFragment" />
+    <fragment
+        android:id="@+id/addTransactionFragment"
+        android:name="com.example.tally.fragments.AddTransactionFragment">
+        <action
+            android:id="@+id/action_addTransactionFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_addTransactionFragment_to_transactionsFragment"
+            app:destination="@id/transactionsFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_addTransactionFragment_to_analyticsFragment"
+            app:destination="@id/analyticsFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_addTransactionFragment_to_categoriesFragment"
+            app:destination="@id/categoriesFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
 
 </navigation>

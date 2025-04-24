@@ -7,10 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import androidx.fragment.app.activityViewModels
-import com.example.tally.R
 import com.example.tally.databinding.FragmentAnalyticsBinding
 import com.example.tally.viewmodels.FinanceViewModel
-import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
@@ -64,7 +62,7 @@ class AnalyticsFragment : Fragment() {
         }
     }
 
-    private fun updatePieChart(categoryMap: Map<String?, Pair<Float, String>>) {
+    private fun updatePieChart(categoryMap: Map<String, Pair<Float, String>>) {
         val entries = categoryMap.map { PieEntry(it.value.first, it.value.second) }
         val dataSet = PieDataSet(entries, "Expenses by Category")
         dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
