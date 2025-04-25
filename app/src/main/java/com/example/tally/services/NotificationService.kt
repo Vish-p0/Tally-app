@@ -96,7 +96,8 @@ class NotificationService(private val context: Context) {
             type = AppNotification.NotificationType.WARNING,
             title = title,
             message = message,
-            relatedEntityId = budgetItem.id
+            relatedEntityId = budgetItem.id,
+            icon = R.drawable.warning_icon
         )
         
         saveNotification(notification)
@@ -112,7 +113,8 @@ class NotificationService(private val context: Context) {
             type = AppNotification.NotificationType.ALERT,
             title = title,
             message = message,
-            relatedEntityId = budgetItem.id
+            relatedEntityId = budgetItem.id,
+            icon = R.drawable.ic_warning
         )
         
         saveNotification(notification)
@@ -127,7 +129,8 @@ class NotificationService(private val context: Context) {
         val notification = AppNotification(
             type = AppNotification.NotificationType.WARNING,
             title = title,
-            message = message
+            message = message,
+            icon = R.drawable.warning_icon
         )
         
         saveNotification(notification)
@@ -142,7 +145,8 @@ class NotificationService(private val context: Context) {
         val notification = AppNotification(
             type = AppNotification.NotificationType.ALERT,
             title = title,
-            message = message
+            message = message,
+            icon = R.drawable.ic_warning
         )
         
         saveNotification(notification)
@@ -160,7 +164,8 @@ class NotificationService(private val context: Context) {
             type = AppNotification.NotificationType.TRANSACTION,
             title = title,
             message = message,
-            relatedEntityId = transaction.id
+            relatedEntityId = transaction.id,
+            icon = R.drawable.money
         )
         
         saveNotification(notification)
@@ -171,7 +176,8 @@ class NotificationService(private val context: Context) {
         val notification = AppNotification(
             type = AppNotification.NotificationType.REMINDER,
             title = title,
-            message = message
+            message = message,
+            icon = R.drawable.notifications
         )
         
         saveNotification(notification)
@@ -199,13 +205,37 @@ class NotificationService(private val context: Context) {
         val channelId = when (notification.type) {
             AppNotification.NotificationType.ALERT -> CHANNEL_ID_ALERTS
             AppNotification.NotificationType.WARNING -> CHANNEL_ID_WARNINGS
-            AppNotification.NotificationType.TRANSACTION -> CHANNEL_ID_TRANSACTIONS
+            AppNotification.NotificationType.TRANSACTION, 
+            AppNotification.NotificationType.TRANSACTION_ADDED,
+            AppNotification.NotificationType.TRANSACTION_UPDATED,
+            AppNotification.NotificationType.TRANSACTION_DELETED -> CHANNEL_ID_TRANSACTIONS
             AppNotification.NotificationType.REMINDER -> CHANNEL_ID_REMINDERS
+            AppNotification.NotificationType.BUDGET_CREATED,
+            AppNotification.NotificationType.BUDGET_UPDATED,
+            AppNotification.NotificationType.BUDGET_LIMIT_REACHED,
+            AppNotification.NotificationType.BACKUP_CREATED,
+            AppNotification.NotificationType.BACKUP_RESTORED,
+            AppNotification.NotificationType.GENERAL,
+            AppNotification.NotificationType.NEWER,
+            AppNotification.NotificationType.OLDER -> CHANNEL_ID_REMINDERS
         }
         
         val importance = when (notification.type) {
             AppNotification.NotificationType.ALERT -> NotificationCompat.PRIORITY_HIGH
-            else -> NotificationCompat.PRIORITY_DEFAULT
+            AppNotification.NotificationType.WARNING -> NotificationCompat.PRIORITY_DEFAULT
+            AppNotification.NotificationType.TRANSACTION,
+            AppNotification.NotificationType.TRANSACTION_ADDED,
+            AppNotification.NotificationType.TRANSACTION_UPDATED,
+            AppNotification.NotificationType.TRANSACTION_DELETED -> NotificationCompat.PRIORITY_DEFAULT
+            AppNotification.NotificationType.REMINDER -> NotificationCompat.PRIORITY_DEFAULT
+            AppNotification.NotificationType.BUDGET_CREATED,
+            AppNotification.NotificationType.BUDGET_UPDATED, 
+            AppNotification.NotificationType.BUDGET_LIMIT_REACHED,
+            AppNotification.NotificationType.BACKUP_CREATED,
+            AppNotification.NotificationType.BACKUP_RESTORED,
+            AppNotification.NotificationType.GENERAL,
+            AppNotification.NotificationType.NEWER,
+            AppNotification.NotificationType.OLDER -> NotificationCompat.PRIORITY_DEFAULT
         }
         
         val builder = NotificationCompat.Builder(context, channelId)
@@ -248,7 +278,7 @@ class NotificationService(private val context: Context) {
         val notifications = getAllNotifications().map { 
             it.copy(isRead = true) 
         }
-        saveAllNotifications(notifications)
+        saveAllNotifications(notifications.toList())
     }
     
     fun deleteNotification(notificationId: String) {
@@ -259,16 +289,20 @@ class NotificationService(private val context: Context) {
     
     fun clearAllNotifications() {
         saveAllNotifications(emptyList())
+        val notificationManager = NotificationManagerCompat.from(context)
+        notificationManager.cancelAll()
     }
     
     fun getAllNotifications(): List<AppNotification> {
-        val notificationsJson = preferences.getString(NOTIFICATIONS_KEY, null)
-        if (notificationsJson.isNullOrEmpty()) {
-            return emptyList()
-        }
+        val json = preferences.getString(NOTIFICATIONS_KEY, null) ?: return emptyList()
         
-        val type = object : TypeToken<List<AppNotification>>() {}.type
-        return gson.fromJson(notificationsJson, type)
+        return try {
+            val type = object : TypeToken<List<AppNotification>>() {}.type
+            gson.fromJson(json, type)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
     
     private fun saveAllNotifications(notifications: List<AppNotification>) {

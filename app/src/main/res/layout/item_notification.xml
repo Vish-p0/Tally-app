@@ -1,109 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:background="@android:color/white"
+    android:foreground="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="16dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <View
+        android:id="@+id/viewUnreadIndicator"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:background="@drawable/circle_primary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivNotificationIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/circle_green_background"
+        android:contentDescription="@string/notification_icon"
+        android:padding="8dp"
+        android:src="@drawable/backup"
+        android:tint="@color/primary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvNotificationTitle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Backup Successful"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ivNotificationIcon"
+        app:layout_constraintTop_toTopOf="@+id/ivNotificationIcon" />
 
-        <!-- Notification icon -->
-        <TextView
-            android:id="@+id/notificationIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/circle_background"
-            android:gravity="center"
-            android:text="🔔"
-            android:textSize="20sp" />
+    <TextView
+        android:id="@+id/tvNotificationMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:text="Your data has been successfully backed up"
+        android:textColor="@color/dark_gray"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ivNotificationIcon"
+        app:layout_constraintTop_toBottomOf="@+id/tvNotificationTitle" />
 
-        <!-- Notification content -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:orientation="vertical">
+    <TextView
+        android:id="@+id/tvNotificationTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="2 mins ago"
+        android:textColor="@color/light_gray"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@+id/tvNotificationMessage"
+        app:layout_constraintTop_toBottomOf="@+id/tvNotificationMessage" />
 
-            <!-- Title row with date -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/notificationTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="@color/primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:text="Notification Title" />
-
-                <TextView
-                    android:id="@+id/notificationDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/gray"
-                    android:textSize="12sp"
-                    android:text="Today" />
-            </LinearLayout>
-
-            <!-- Notification message -->
-            <TextView
-                android:id="@+id/notificationMessage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/secondary_text"
-                android:textSize="14sp"
-                android:text="Notification message content goes here" />
-
-            <!-- Action buttons if needed -->
-            <LinearLayout
-                android:id="@+id/actionButtonsLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <Button
-                    android:id="@+id/primaryActionButton"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="36dp"
-                    android:text="View"
-                    android:textAllCaps="false"
-                    android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/secondaryActionButton"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="36dp"
-                    android:text="Dismiss"
-                    android:textAllCaps="false"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Read/Unread indicator -->
-        <View
-            android:id="@+id/unreadIndicator"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/circle_indicator"
-            android:visibility="visible" />
-    </LinearLayout>
-</androidx.cardview.widget.CardView> 
+</androidx.constraintlayout.widget.ConstraintLayout> 

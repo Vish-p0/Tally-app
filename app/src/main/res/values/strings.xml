@@ -97,4 +97,14 @@
         <item>Rental</item>
         <item>Other Income</item>
     </string-array>
+
+    <!-- Notification strings -->
+    <string name="notification_icon">Notification Icon</string>
+    <string name="delete_notification">Delete Notification</string>
+    <string name="delete_notification_confirm">Are you sure you want to delete this notification?</string>
+    <string name="clear_all_notifications">Clear All Notifications</string>
+    <string name="clear_all_notifications_confirm">Are you sure you want to clear all notifications?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="clear_all">Clear All</string>
 </resources>

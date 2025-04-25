@@ -12,12 +12,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.tally.models.AppNotification
 import com.example.tally.models.Category
 import com.example.tally.models.Currency
 import com.example.tally.models.Transaction
 import com.example.tally.models.BudgetItem
 import com.example.tally.repositories.FinanceRepository
+import com.example.tally.utils.BackupRestoreUtil
 import com.example.tally.utils.CurrencyManager
+import com.example.tally.utils.NotificationUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
@@ -32,6 +35,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     private val repository = FinanceRepository(application)
     private val gson = Gson()
     private val currencyManager = CurrencyManager(application)
+    private val backupRestoreUtil = BackupRestoreUtil(application)
+    private val notificationUtils = NotificationUtils(application)
 
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> get() = _categories
@@ -45,12 +50,25 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     private val _currentCurrency = MutableLiveData<Currency>()
     val currentCurrency: LiveData<Currency> get() = _currentCurrency
 
+    // Add LiveData for backup operations
+    private val _backupFiles = MutableLiveData<List<Pair<File, Date>>>()
+    val backupFiles: LiveData<List<Pair<File, Date>>> get() = _backupFiles
+    
+    // Add LiveData for notifications
+    private val _notifications = MutableLiveData<List<AppNotification>>()
+    val notifications: LiveData<List<AppNotification>> get() = _notifications
+
     init {
+        // Create notification channel
+        notificationUtils.createNotificationChannel()
+        
         // Load data
         loadCategories()
         loadTransactions()
         loadBudget()
         loadCurrentCurrency()
+        loadBackupFiles()
+        loadNotifications()
     }
 
     private fun loadCurrentCurrency() {
@@ -88,6 +106,20 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     private fun loadBudget() {
         viewModelScope.launch {
             _budget.value = repository.getBudget()
+        }
+    }
+
+    // New method to load backup files
+    private fun loadBackupFiles() {
+        viewModelScope.launch {
+            _backupFiles.value = backupRestoreUtil.listBackupFiles()
+        }
+    }
+    
+    // New method to load notifications
+    private fun loadNotifications() {
+        viewModelScope.launch {
+            _notifications.value = repository.getNotifications()
         }
     }
 
@@ -130,6 +162,13 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         currentTransactions.add(transactionInUsd)
         repository.saveTransactions(currentTransactions)
         _transactions.value = currentTransactions
+        
+        // Send notification for the new transaction
+        notificationUtils.notifyTransactionCreated(
+            transactionName = transaction.title,
+            amount = transaction.amount,
+            isExpense = transaction.type == "Expense"
+        )
     }
 
     fun updateTransaction(updatedTransaction: Transaction) {
@@ -144,6 +183,13 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             currentTransactions[index] = transactionInUsd
             repository.saveTransactions(currentTransactions)
             _transactions.value = currentTransactions
+            
+            // Send notification for the updated transaction
+            notificationUtils.notifyTransactionCreated(
+                transactionName = updatedTransaction.title,
+                amount = updatedTransaction.amount,
+                isExpense = updatedTransaction.type == "Expense"
+            )
         }
     }
 
@@ -159,6 +205,25 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         val budgetInUsd = currencyManager.convertAmountToUsd(budget)
         repository.saveBudget(budgetInUsd)
         _budget.value = budgetInUsd
+        
+        // Send notification for budget update
+        notificationUtils.notifyBudgetUpdated("Monthly", budget)
+    }
+    
+    fun updateBudgetItem(budgetItem: BudgetItem) {
+        val currentItems = repository.getAllBudgetItems().toMutableList()
+        val index = currentItems.indexOfFirst { it.id == budgetItem.id }
+        
+        if (index != -1) {
+            currentItems[index] = budgetItem
+        } else {
+            currentItems.add(budgetItem)
+        }
+        
+        repository.saveBudgetItems(currentItems)
+        
+        // Send notification for budget item update
+        notificationUtils.notifyBudgetUpdated(budgetItem.categoryName, budgetItem.budgetAmount)
     }
 
     fun getMonthlyBudget(): Double {
@@ -182,6 +247,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         loadTransactions()
         loadBudget()
         loadCurrentCurrency()
+        loadBackupFiles()
+        loadNotifications()
     }
 
     fun getCategoryById(categoryId: String?): Category? {
@@ -191,96 +258,64 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         return _categories.value?.find { it.id == categoryId }
     }
 
+    /**
+     * Creates a backup of all app data.
+     * @return URI of the backup file or null if backup failed
+     */
     fun backupData(): Uri? {
-        try {
-            val context = getApplication<Application>()
-            val backupDir = File(context.getExternalFilesDir(null), "backups")
-            if (!backupDir.exists()) {
-                backupDir.mkdirs()
-            }
-
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val backupFile = File(backupDir, "tally_backup_$timestamp.json")
-
-            // Create backup data object
-            val backupData = mapOf(
-                "categories" to categories.value,
-                "transactions" to transactions.value,
-                "budget" to budget.value,
-                "budgetItems" to repository.getAllBudgetItems(),
-                "currencyCode" to currentCurrency.value?.code
-            )
-
-            // Convert to JSON
-            val backupJson = Gson().toJson(backupData)
-
-            // Write to file
-            FileOutputStream(backupFile).use { output ->
-                output.write(backupJson.toByteArray())
-            }
-
-            return FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                backupFile
-            )
-        } catch (e: Exception) {
-            Log.e("FinanceViewModel", "Backup failed: ${e.message}", e)
-            return null
-        }
+        val categories = _categories.value ?: emptyList()
+        val transactions = _transactions.value ?: emptyList()
+        val budget = _budget.value ?: 0.0
+        val budgetItems = repository.getAllBudgetItems()
+        val currencyCode = _currentCurrency.value?.code
+        
+        val backupUri = backupRestoreUtil.createBackup(
+            categories,
+            transactions,
+            budget,
+            budgetItems,
+            currencyCode
+        )
+        
+        // Refresh backup files list
+        loadBackupFiles()
+        
+        return backupUri
     }
 
+    /**
+     * Restores data from the latest backup file.
+     * @return true if restore was successful, false otherwise
+     */
     fun restoreData(): Boolean {
         try {
-            val context = getApplication<Application>()
-            val backupDir = File(context.getExternalFilesDir(null), "backups")
-            if (!backupDir.exists() || backupDir.listFiles()?.isEmpty() == true) {
-                Log.e("FinanceViewModel", "No backup files found")
-                return false
-            }
-
-            // Get the most recent backup file
-            val backupFiles = backupDir.listFiles()?.filter { it.name.endsWith(".json") }
-                ?.sortedByDescending { it.lastModified() }
-            
-            val latestBackupFile = backupFiles?.firstOrNull() ?: return false
-
-            // Read file content
-            val backupJson = FileInputStream(latestBackupFile).bufferedReader().use { it.readText() }
-            
-            // Parse JSON
-            val gson = Gson()
-            val type = object : TypeToken<Map<String, Any>>() {}.type
-            val backupData: Map<String, Any> = gson.fromJson(backupJson, type)
+            val backupData = backupRestoreUtil.restoreFromLatestBackup() ?: return false
             
             // Restore categories
-            val categoriesType = object : TypeToken<List<Category>>() {}.type
-            val categoriesJson = gson.toJson(backupData["categories"])
-            val restoredCategories: List<Category> = gson.fromJson(categoriesJson, categoriesType)
-            repository.saveCategories(restoredCategories)
-            _categories.value = restoredCategories
+            backupData.categories?.let { categories ->
+                repository.saveCategories(categories)
+                _categories.value = categories
+            }
             
             // Restore transactions
-            val transactionsType = object : TypeToken<List<Transaction>>() {}.type
-            val transactionsJson = gson.toJson(backupData["transactions"])
-            val restoredTransactions: List<Transaction> = gson.fromJson(transactionsJson, transactionsType)
-            repository.saveTransactions(restoredTransactions)
-            _transactions.value = restoredTransactions
+            backupData.transactions?.let { transactions ->
+                repository.saveTransactions(transactions)
+                _transactions.value = transactions
+            }
             
             // Restore budget
-            val budgetValue = (backupData["budget"] as? Double) ?: 0.0
-            repository.saveBudget(budgetValue)
-            _budget.value = budgetValue
+            backupData.budget?.let { budget ->
+                repository.saveBudget(budget)
+                _budget.value = budget
+            }
             
             // Restore budget items
-            val budgetItemsType = object : TypeToken<List<BudgetItem>>() {}.type
-            val budgetItemsJson = gson.toJson(backupData["budgetItems"])
-            val restoredBudgetItems: List<BudgetItem> = gson.fromJson(budgetItemsJson, budgetItemsType)
-            repository.saveBudgetItems(restoredBudgetItems)
+            backupData.budgetItems?.let { budgetItems ->
+                repository.saveBudgetItems(budgetItems)
+            }
             
             // Restore currency if available
-            val currencyCode = backupData["currencyCode"] as? String
-            if (currencyCode != null) {
+            backupData.currencyCode?.let { currencyCode ->
                 val currency = Currency.getByCode(currencyCode)
                 currencyManager.setCurrentCurrency(currency)
                 _currentCurrency.value = currency
@@ -291,6 +326,89 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             Log.e("FinanceViewModel", "Restore failed: ${e.message}", e)
             return false
         }
+    }
+    
+    /**
+     * Restores data from a specific backup file.
+     * @param backupFile The backup file to restore from
+     * @return true if restore was successful, false otherwise
+     */
+    fun restoreFromFile(backupFile: File): Boolean {
+        try {
+            val backupData = backupRestoreUtil.restoreFromFile(backupFile) ?: return false
+            
+            // Restore categories
+            backupData.categories?.let { categories ->
+                repository.saveCategories(categories)
+                _categories.value = categories
+            }
+            
+            // Restore transactions
+            backupData.transactions?.let { transactions ->
+                repository.saveTransactions(transactions)
+                _transactions.value = transactions
+            }
+            
+            // Restore budget
+            backupData.budget?.let { budget ->
+                repository.saveBudget(budget)
+                _budget.value = budget
+            }
+            
+            // Restore budget items
+            backupData.budgetItems?.let { budgetItems ->
+                repository.saveBudgetItems(budgetItems)
+            }
+            
+            // Restore currency if available
+            backupData.currencyCode?.let { currencyCode ->
+                val currency = Currency.getByCode(currencyCode)
+                currencyManager.setCurrentCurrency(currency)
+                _currentCurrency.value = currency
+            }
+            
+            return true
+        } catch (e: Exception) {
+            Log.e("FinanceViewModel", "Restore failed: ${e.message}", e)
+            return false
+        }
+    }
+    
+    /**
+     * Deletes a backup file.
+     * @param backupFile The backup file to delete
+     * @return true if deletion was successful, false otherwise
+     */
+    fun deleteBackupFile(backupFile: File): Boolean {
+        val success = backupRestoreUtil.deleteBackupFile(backupFile)
+        
+        // Refresh backup files list
+        if (success) {
+            loadBackupFiles()
+        }
+        
+        return success
+    }
+    
+    // Notification methods
+    fun markNotificationAsRead(notificationId: String) {
+        repository.markNotificationAsRead(notificationId)
+        loadNotifications()
+    }
+    
+    fun markAllNotificationsAsRead() {
+        repository.markAllNotificationsAsRead()
+        loadNotifications()
+    }
+    
+    fun deleteNotification(notificationId: String) {
+        repository.deleteNotification(notificationId)
+        loadNotifications()
+    }
+    
+    fun clearAllNotifications() {
+        repository.clearAllNotifications()
+        loadNotifications()
     }
 
     companion object {

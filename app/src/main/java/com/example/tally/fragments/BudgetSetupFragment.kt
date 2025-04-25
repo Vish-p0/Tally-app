@@ -533,6 +533,19 @@ class BudgetSetupFragment : Fragment() {
         // Save to repository
         budgetRepository.createBudget(monthlyBudget)
         
+        // Calculate total budget amount to notify through ViewModel
+        val totalBudget = monthlyBudget.getTotalIncome()
+        
+        // Create notifications for the budget via ViewModel
+        viewModel.setBudget(totalBudget)
+        
+        // Also create notifications for individual budget items
+        monthlyBudget.budgetItems.forEach { budgetItem ->
+            if (budgetItem.budgetAmount > 0) {
+                viewModel.updateBudgetItem(budgetItem)
+            }
+        }
+        
         // Show success message
         val actionText = if (isEditing) "updated" else "saved"
         Toast.makeText(requireContext(), "Budget $actionText successfully", Toast.LENGTH_SHORT).show()

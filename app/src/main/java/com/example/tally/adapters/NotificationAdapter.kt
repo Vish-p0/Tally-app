@@ -1,126 +1,84 @@
 package com.example.tally.adapters
 
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tally.R
 import com.example.tally.models.AppNotification
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
+/**
+ * Adapter for displaying notifications in a RecyclerView.
+ */
 class NotificationAdapter(
-    private val onItemClick: (AppNotification) -> Unit,
-    private val onDismissClick: (AppNotification) -> Unit,
-    private val onActionClick: (AppNotification) -> Unit
-) : ListAdapter<AppNotification, NotificationAdapter.NotificationViewHolder>(NotificationDiffCallback()) {
+    private val onNotificationClicked: (AppNotification) -> Unit,
+    private val onNotificationLongClicked: (AppNotification) -> Boolean
+) : ListAdapter<AppNotification, NotificationAdapter.ViewHolder>(NotificationDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_notification, parent, false)
-        return NotificationViewHolder(view)
+        return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val notification = getItem(position)
         holder.bind(notification)
     }
 
-    inner class NotificationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val notificationIcon: TextView = itemView.findViewById(R.id.notificationIcon)
-        private val notificationTitle: TextView = itemView.findViewById(R.id.notificationTitle)
-        private val notificationMessage: TextView = itemView.findViewById(R.id.notificationMessage)
-        private val notificationDate: TextView = itemView.findViewById(R.id.notificationDate)
-        private val unreadIndicator: View = itemView.findViewById(R.id.unreadIndicator)
-        private val actionButtonsLayout: LinearLayout = itemView.findViewById(R.id.actionButtonsLayout)
-        private val primaryActionButton: Button = itemView.findViewById(R.id.primaryActionButton)
-        private val secondaryActionButton: Button = itemView.findViewById(R.id.secondaryActionButton)
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val iconView: ImageView = itemView.findViewById(R.id.ivNotificationIcon)
+        private val titleView: TextView = itemView.findViewById(R.id.tvNotificationTitle)
+        private val messageView: TextView = itemView.findViewById(R.id.tvNotificationMessage)
+        private val timeView: TextView = itemView.findViewById(R.id.tvNotificationTime)
+        private val unreadIndicator: View = itemView.findViewById(R.id.viewUnreadIndicator)
 
         fun bind(notification: AppNotification) {
-            // Set notification icon based on type
-            notificationIcon.text = notification.getIcon()
-
-            // Set title and message
-            notificationTitle.text = notification.title
-            notificationMessage.text = notification.message
-
-            // Format and set date
-            notificationDate.text = formatNotificationDate(notification)
-
-            // Show/hide unread indicator
-            unreadIndicator.visibility = if (notification.isRead) View.INVISIBLE else View.VISIBLE
-
-            // Handle action buttons for different notification types
-            setupActionButtons(notification)
-
-            // Set click listener on the entire item
-            itemView.setOnClickListener {
-                onItemClick(notification)
-            }
-        }
-
-        private fun setupActionButtons(notification: AppNotification) {
-            when (notification.type) {
-                AppNotification.NotificationType.ALERT, 
-                AppNotification.NotificationType.WARNING -> {
-                    if (notification.relatedEntityId != null) {
-                        // It's a budget or transaction related alert/warning
-                        actionButtonsLayout.visibility = View.VISIBLE
-                        
-                        primaryActionButton.text = "View"
-                        primaryActionButton.setOnClickListener {
-                            onActionClick(notification)
-                        }
-                        
-                        secondaryActionButton.text = "Dismiss"
-                        secondaryActionButton.setOnClickListener {
-                            onDismissClick(notification)
-                        }
-                    } else {
-                        actionButtonsLayout.visibility = View.GONE
-                    }
-                }
-                AppNotification.NotificationType.TRANSACTION -> {
-                    actionButtonsLayout.visibility = View.VISIBLE
-                    
-                    primaryActionButton.text = "View Details"
-                    primaryActionButton.setOnClickListener {
-                        onActionClick(notification)
-                    }
-                    
-                    secondaryActionButton.text = "Dismiss"
-                    secondaryActionButton.setOnClickListener {
-                        onDismissClick(notification)
-                    }
-                }
-                else -> {
-                    actionButtonsLayout.visibility = View.GONE
-                }
-            }
-        }
-
-        private fun formatNotificationDate(notification: AppNotification): String {
-            // Get date group
-            val dateGroup = notification.getDateGroup()
+            // Set notification icon
+            iconView.setImageResource(notification.icon)
             
-            return when (dateGroup) {
-                AppNotification.DateGroup.TODAY -> "Today"
-                AppNotification.DateGroup.YESTERDAY -> "Yesterday"
-                AppNotification.DateGroup.THIS_WEEK -> {
-                    val sdf = SimpleDateFormat("EEE", Locale.getDefault())
-                    sdf.format(Date(notification.timestamp))
-                }
-                AppNotification.DateGroup.OLDER -> {
-                    val sdf = SimpleDateFormat("MMM dd", Locale.getDefault())
-                    sdf.format(Date(notification.timestamp))
-                }
+            // Set notification title and message
+            titleView.text = notification.title
+            messageView.text = notification.message
+            
+            // Format and set time
+            timeView.text = getRelativeTimeString(notification.timestamp)
+            
+            // Set unread indicator visibility
+            unreadIndicator.visibility = if (notification.isRead) View.GONE else View.VISIBLE
+            
+            // Set background color based on read status
+            val backgroundColor = if (notification.isRead) {
+                ContextCompat.getColor(itemView.context, R.color.white)
+            } else {
+                ContextCompat.getColor(itemView.context, R.color.light_gray)
             }
+            itemView.setBackgroundColor(backgroundColor)
+            
+            // Set click listeners
+            itemView.setOnClickListener {
+                onNotificationClicked(notification)
+            }
+            
+            itemView.setOnLongClickListener {
+                onNotificationLongClicked(notification)
+            }
+        }
+        
+        private fun getRelativeTimeString(timestamp: Long): String {
+            return DateUtils.getRelativeTimeSpanString(
+                timestamp,
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS,
+                DateUtils.FORMAT_ABBREV_RELATIVE
+            ).toString()
         }
     }
 

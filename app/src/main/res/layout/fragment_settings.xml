@@ -130,12 +130,22 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- Backup & Restore Section Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:text="Backup &amp; Restore"
+                android:textColor="@color/primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
             <!-- Backup Data Button -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnBackupData"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:background="@drawable/round_button_ripple"
                 android:clickable="true"
                 android:focusable="true"
@@ -154,17 +164,32 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
+                    android:id="@+id/tvBackupTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="8dp"
-                    android:text="Backup Data"
+                    android:text="Export Data"
                     android:textColor="@color/primary"
                     android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivBackup"
+                    app:layout_constraintBottom_toTopOf="@+id/tvBackupDescription"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/ivBackup"
                     app:layout_constraintTop_toTopOf="@+id/ivBackup" />
+
+                <TextView
+                    android:id="@+id/tvBackupDescription"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Export your transaction data as a backup file"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivBackup"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivBackup"
+                    app:layout_constraintTop_toBottomOf="@+id/tvBackupTitle" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -192,6 +217,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
+                    android:id="@+id/tvRestoreTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -199,10 +225,24 @@
                     android:text="Restore Data"
                     android:textColor="@color/primary"
                     android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivRestore"
+                    app:layout_constraintBottom_toTopOf="@+id/tvRestoreDescription"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/ivRestore"
                     app:layout_constraintTop_toTopOf="@+id/ivRestore" />
+
+                <TextView
+                    android:id="@+id/tvRestoreDescription"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Restore your transaction data from a backup file"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivRestore"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivRestore"
+                    app:layout_constraintTop_toBottomOf="@+id/tvRestoreTitle" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -254,22 +294,12 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Notification Section Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="16dp"
-                android:text="Notifications"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Notification Button -->
+            <!-- Notifications Button -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnNotifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/round_button_ripple"
                 android:clickable="true"
                 android:focusable="true"
@@ -281,7 +311,7 @@
                     android:layout_height="40dp"
                     android:background="@drawable/circle_green_background"
                     android:padding="10dp"
-                    android:src="@drawable/bell"
+                    android:src="@drawable/notifications"
                     android:tint="@color/primary"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -292,7 +322,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="8dp"
-                    android:text="Notifications Settings"
+                    android:text="Notifications"
                     android:textColor="@color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="@+id/ivNotifications"
@@ -302,44 +332,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Security Button -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnSecurity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivSecurity"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_lock"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Security Settings"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivSecurity"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivSecurity"
-                    app:layout_constraintTop_toTopOf="@+id/ivSecurity" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Save button -->
             <Button
                 android:id="@+id/btnSaveSettings"
                 android:layout_width="match_parent"
@@ -347,12 +339,10 @@
                 android:layout_marginTop="32dp"
                 android:background="@drawable/rounded_button"
                 android:text="Save Settings"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                app:backgroundTint="@color/primary" />
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
 
         </LinearLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <Button

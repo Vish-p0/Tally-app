@@ -1,6 +1,7 @@
 package com.example.tally.repositories
 
 import android.content.Context
+import com.example.tally.models.AppNotification
 import com.example.tally.models.BudgetItem
 import com.example.tally.models.Category
 import com.example.tally.models.Transaction
@@ -85,6 +86,56 @@ class FinanceRepository(private val context: Context) {
     
     fun clearBudgetItems() {
         prefs.edit().remove("budget_items").apply()
+    }
+    
+    // Notification methods
+    fun getNotifications(): List<AppNotification> {
+        val notificationsJson = prefs.getString("notifications", null)
+        return if (notificationsJson != null) {
+            val type = object : TypeToken<List<AppNotification>>() {}.type
+            gson.fromJson(notificationsJson, type)
+        } else {
+            emptyList()
+        }
+    }
+    
+    fun saveNotifications(notifications: List<AppNotification>) {
+        // Sort notifications: unread first, then by timestamp (newer first)
+        val sortedNotifications = notifications.sortedByDescending { it.sortValue() }
+        // Keep only the latest 50 notifications to avoid excessive storage use
+        val trimmedNotifications = if (sortedNotifications.size > 50) {
+            sortedNotifications.take(50)
+        } else {
+            sortedNotifications
+        }
+        val notificationsJson = gson.toJson(trimmedNotifications)
+        prefs.edit().putString("notifications", notificationsJson).apply()
+    }
+    
+    fun markNotificationAsRead(notificationId: String) {
+        val notifications = getNotifications().toMutableList()
+        val index = notifications.indexOfFirst { it.id == notificationId }
+        if (index != -1) {
+            val notification = notifications[index]
+            notifications[index] = notification.copy(isRead = true)
+            saveNotifications(notifications)
+        }
+    }
+    
+    fun markAllNotificationsAsRead() {
+        val notifications = getNotifications().toMutableList()
+        val updatedNotifications = notifications.map { it.copy(isRead = true) }
+        saveNotifications(updatedNotifications)
+    }
+    
+    fun deleteNotification(notificationId: String) {
+        val notifications = getNotifications().toMutableList()
+        notifications.removeAll { it.id == notificationId }
+        saveNotifications(notifications)
+    }
+    
+    fun clearAllNotifications() {
+        prefs.edit().remove("notifications").apply()
     }
     
     // Clear all data in the app
