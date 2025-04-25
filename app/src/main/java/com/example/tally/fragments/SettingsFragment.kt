@@ -2,6 +2,7 @@ package com.example.tally.fragments
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ import com.example.tally.viewmodels.FinanceViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -33,11 +35,11 @@ class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-    
+
     private val viewModel: FinanceViewModel by activityViewModels()
     private lateinit var currencyManager: CurrencyManager
     private lateinit var pinManager: PinManager
-    
+
     private var currencyDialog: AlertDialog? = null
     private var backupDialog: AlertDialog? = null
     private var selectedBackupFile: File? = null
@@ -58,7 +60,7 @@ class SettingsFragment : Fragment() {
 
         // Initialize UI with current settings
         updateCurrencyDisplay()
-        
+
         setupClickListeners()
 
         // Save Settings button
@@ -99,6 +101,11 @@ class SettingsFragment : Fragment() {
             showBackupSelectionDialog()
         }
 
+        // Export to Excel button
+        binding.btnExportExcel.setOnClickListener {
+            exportTransactionsToExcel()
+        }
+
         // Theme button
         binding.btnTheme.setOnClickListener {
             showThemeSelectionDialog()
@@ -113,37 +120,37 @@ class SettingsFragment : Fragment() {
     private fun showCurrencySelectionDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_currency_selection, null)
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.currencyRecyclerView)
-        
+
         // Setup RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        
+
         // Create adapter with all available currencies
         val adapter = CurrencyAdapter(Currency.availableCurrencies) { selectedCurrency ->
             // Save the selected currency
             currencyManager.setCurrentCurrency(selectedCurrency)
-            
+
             // Update UI
             updateCurrencyDisplay()
-            
+
             // Show confirmation
             Toast.makeText(
                 requireContext(),
                 "Currency changed to ${selectedCurrency.name}",
                 Toast.LENGTH_SHORT
             ).show()
-            
+
             // Dismiss dialog
             currencyDialog?.dismiss()
         }
-        
+
         recyclerView.adapter = adapter
-        
+
         // Show dialog
         currencyDialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
             .setCancelable(true)
             .create()
-            
+
         currencyDialog?.show()
     }
 
@@ -160,44 +167,44 @@ class SettingsFragment : Fragment() {
 
     private fun showBackupSelectionDialog() {
         val backupFiles = viewModel.backupFiles.value ?: emptyList()
-        
+
         if (backupFiles.isEmpty()) {
             Toast.makeText(requireContext(), "No backup files found", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         // Inflate the dialog view
         val dialogView = layoutInflater.inflate(R.layout.dialog_backup_selection, null)
-        
+
         // Get views
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.backupRecyclerView)
         val noBackupsMessage = dialogView.findViewById<View>(R.id.tvNoBackupsMessage)
         val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
         val btnRestore = dialogView.findViewById<Button>(R.id.btnRestore)
-        
+
         // Setup RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        
+
         // Setup adapter
         val adapter = BackupFilesAdapter(backupFiles) { file ->
             selectedBackupFile = file
         }
         recyclerView.adapter = adapter
-        
+
         // Select the most recent backup by default
         adapter.selectMostRecentBackup()
-        
+
         // Create and show dialog
         backupDialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
             .setCancelable(true)
             .create()
-        
+
         // Setup buttons
         btnCancel.setOnClickListener {
             backupDialog?.dismiss()
         }
-        
+
         btnRestore.setOnClickListener {
             val fileToRestore = adapter.getSelectedBackupFile()
             if (fileToRestore != null) {
@@ -207,7 +214,7 @@ class SettingsFragment : Fragment() {
                 Toast.makeText(requireContext(), "Please select a backup file", Toast.LENGTH_SHORT).show()
             }
         }
-        
+
         // Show empty state if needed
         if (backupFiles.isEmpty()) {
             recyclerView.visibility = View.GONE
@@ -218,24 +225,24 @@ class SettingsFragment : Fragment() {
             noBackupsMessage.visibility = View.GONE
             btnRestore.isEnabled = true
         }
-        
+
         backupDialog?.show()
     }
 
     private fun showRestoreOptionsDialog() {
         val backupFiles = viewModel.backupFiles.value ?: emptyList()
-        
+
         if (backupFiles.isEmpty()) {
             Toast.makeText(requireContext(), "No backup files found", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         // Create a list of backup options with dates
         val dateFormat = SimpleDateFormat("MMM dd, yyyy (HH:mm)", Locale.getDefault())
-        val options = backupFiles.map { 
+        val options = backupFiles.map {
             "Backup from ${dateFormat.format(it.second)}"
         }.toTypedArray()
-        
+
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Select Backup to Restore")
             .setItems(options) { _, which ->
@@ -280,7 +287,7 @@ class SettingsFragment : Fragment() {
 
     private fun backupData() {
         val backupUri = viewModel.backupData()
-        
+
         if (backupUri != null) {
             // Show success message with a button to share the backup
             val snackbar = Snackbar.make(
@@ -288,7 +295,7 @@ class SettingsFragment : Fragment() {
                 "Backup created successfully",
                 Snackbar.LENGTH_LONG
             )
-            
+
             snackbar.setAction("Share") {
                 // Share the backup file
                 val shareIntent = Intent(Intent.ACTION_SEND)
@@ -297,7 +304,7 @@ class SettingsFragment : Fragment() {
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 startActivity(Intent.createChooser(shareIntent, "Share Backup File"))
             }
-            
+
             snackbar.show()
         } else {
             Toast.makeText(requireContext(), "Backup failed", Toast.LENGTH_SHORT).show()
@@ -306,7 +313,7 @@ class SettingsFragment : Fragment() {
 
     private fun restoreData() {
         val success = viewModel.restoreData()
-        
+
         if (success) {
             // Show success message and refresh data
             Snackbar.make(binding.root, "Data restored successfully", Snackbar.LENGTH_SHORT).show()
@@ -319,7 +326,7 @@ class SettingsFragment : Fragment() {
 
     private fun restoreFromFile(backupFile: File) {
         val success = viewModel.restoreFromFile(backupFile)
-        
+
         if (success) {
             // Show success message and refresh data
             Snackbar.make(binding.root, "Data restored successfully", Snackbar.LENGTH_SHORT).show()
@@ -327,6 +334,53 @@ class SettingsFragment : Fragment() {
             updateCurrencyDisplay()
         } else {
             Toast.makeText(requireContext(), "Restore failed. Invalid backup file.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun exportTransactionsToExcel() {
+        val transactions = viewModel.getAllTransactions()
+        if (transactions.isEmpty()) {
+            Toast.makeText(requireContext(), "No transactions to export", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val workbook = org.apache.poi.xssf.usermodel.XSSFWorkbook()
+        val sheet = workbook.createSheet("Transactions")
+
+        val headerRow = sheet.createRow(0)
+        val headers = listOf("ID", "Title", "Amount", "Category ID", "Type", "Description", "Date")
+        for ((index, header) in headers.withIndex()) {
+            headerRow.createCell(index).setCellValue(header)
+        }
+
+        for ((i, txn) in transactions.withIndex()) {
+            val row = sheet.createRow(i + 1)
+            row.createCell(0).setCellValue(txn.id)
+            row.createCell(1).setCellValue(txn.title)
+            row.createCell(2).setCellValue(txn.amount)
+            row.createCell(3).setCellValue(txn.categoryId)
+            row.createCell(4).setCellValue(txn.type)
+            row.createCell(5).setCellValue(txn.description)
+            row.createCell(6).setCellValue(txn.date?.toString() ?: "")
+        }
+
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "transactions_${timestamp}.xlsx"
+
+        // Save to Downloads folder
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val file = File(downloadsDir, fileName)
+
+        try {
+            FileOutputStream(file).use { outputStream ->
+                workbook.write(outputStream)
+                outputStream.flush()
+            }
+            workbook.close()
+            Toast.makeText(requireContext(), "Exported to ${file.absolutePath}", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(requireContext(), "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -338,4 +392,4 @@ class SettingsFragment : Fragment() {
         backupDialog = null
         _binding = null
     }
-} 
+}

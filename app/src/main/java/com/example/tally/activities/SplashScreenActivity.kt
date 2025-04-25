@@ -164,11 +164,30 @@ class SplashScreenActivity : AppCompatActivity() {
     }
 
     private fun startLandingScreenActivity() {
-        // Creating an Activity intent would require creating a new PinEntryActivity
-        // Instead, we'll use MainActivity but pass a flag to show PIN entry first
-        val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("SHOW_PIN_ENTRY", true)
-        startActivity(intent)
+        val preferences = getSharedPreferences("tally_prefs", MODE_PRIVATE)
+        val isFirstLaunch = preferences.getBoolean("is_first_launch", true)
+        val pinManager = com.example.tally.utils.PinManager(this)
+
+        when {
+            isFirstLaunch -> {
+                // Launch onboarding activity
+                val intent = Intent(this, OnboardingActivity::class.java)
+                startActivity(intent)
+            }
+            !pinManager.isPinCreated() -> {
+                // Launch main activity with pin setup flag
+                val intent = Intent(this, MainActivity::class.java)
+                intent.putExtra("SHOW_PIN_SETUP", true)
+                startActivity(intent)
+            }
+            else -> {
+                // Launch main activity with pin entry flag
+                val intent = Intent(this, MainActivity::class.java)
+                intent.putExtra("SHOW_PIN_ENTRY", true)
+                startActivity(intent)
+            }
+        }
+
         finish()
     }
 }

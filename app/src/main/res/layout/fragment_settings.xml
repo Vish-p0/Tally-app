@@ -246,6 +246,59 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- Export to Excel Button -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnExportExcel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/round_button_ripple"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp">
+
+                <ImageView
+                    android:id="@+id/ivExport"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/circle_green_background"
+                    android:padding="10dp"
+                    android:src="@drawable/excel"
+                    android:tint="@color/primary"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvExportTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Export to Excel"
+                    android:textColor="@color/primary"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toTopOf="@+id/tvExportDescription"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivExport"
+                    app:layout_constraintTop_toTopOf="@+id/ivExport" />
+
+                <TextView
+                    android:id="@+id/tvExportDescription"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Export transactions to an Excel (.xlsx) file"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivExport"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ivExport"
+                    app:layout_constraintTop_toBottomOf="@+id/tvExportTitle" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <!-- Appearance Section Title -->
             <TextView
                 android:layout_width="wrap_content"

@@ -43,7 +43,8 @@
             android:src="@drawable/ic_mark_read"
             android:background="@drawable/circle_background"
             android:padding="6dp"
-            android:contentDescription="Mark All Read" />
+            android:contentDescription="Mark All Read"
+            app:tint="@color/primary" />
 
         <ImageView
             android:id="@+id/btnClearAll"

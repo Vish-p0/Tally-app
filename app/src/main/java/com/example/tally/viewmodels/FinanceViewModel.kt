@@ -411,6 +411,10 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         loadNotifications()
     }
 
+    fun getAllTransactions(): List<Transaction> {
+        return _transactions.value ?: emptyList()
+    }
+
     companion object {
         class Factory(private val application: Application) : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

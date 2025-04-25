@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Add notification permission for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tally"
         tools:targetApi="31">
+
+        <activity
+            android:name=".activities.OnboardingActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
             android:exported="false" />
@@ -39,9 +45,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        
-        <!-- Add the FileProvider declaration -->
+        </activity> <!-- Add the FileProvider declaration -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

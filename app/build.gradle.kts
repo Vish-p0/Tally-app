@@ -38,6 +38,11 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    packagingOptions {
+        exclude("META-INF/DEPENDENCIES")
+    }
+
 }
 
 dependencies {
@@ -66,6 +71,9 @@ dependencies {
     
     // CircleImageView for profile images
     implementation(libs.circleimageview)
+
+    // Apache POI for Excel file handling
+    implementation(libs.apache.poi)
 
     // Testing
     testImplementation(libs.junit)

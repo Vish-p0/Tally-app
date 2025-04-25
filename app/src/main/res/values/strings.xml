@@ -107,4 +107,15 @@
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="clear_all">Clear All</string>
+
+    <string name="image_desc">Onboarding image</string>
+    <string name="welcome_title">Welcome to Tally!</string>
+    <string name="welcome_desc">Your personal finance companion to track income, expenses, and savings effortlessly.</string>
+    <string name="budget_title">Set Monthly Budgets</string>
+    <string name="budget_desc">Allocate your income across categories to stay within limits and avoid overspending.</string>
+    <string name="transactions_title">Record Transactions</string>
+    <string name="transactions_desc">Log your income and expenses by category to see where your money goes.</string>
+    <string name="security_title">Secure Your Finances</string>
+    <string name="security_desc">Protect your data with a PIN, biometric authentication, and encrypted storage for peace of mind.</string>
+    <string name="next">Next</string>
 </resources>
