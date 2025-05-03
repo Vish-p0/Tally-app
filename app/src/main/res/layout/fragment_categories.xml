@@ -7,6 +7,7 @@
     android:layout_height="match_parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/lime_green">
@@ -175,12 +176,12 @@
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginVertical="16dp"
                             android:layout_marginHorizontal="4dp"
+                            android:layout_marginVertical="16dp"
                             app:cardBackgroundColor="@color/white"
                             app:cardCornerRadius="20dp"
-                            app:strokeWidth="0dp"
-                            app:cardElevation="4dp">
+                            app:cardElevation="4dp"
+                            app:strokeWidth="0dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -193,12 +194,12 @@
                                     android:id="@+id/tabAll"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_weight="1"
                                     android:layout_marginEnd="8dp"
+                                    android:layout_weight="1"
                                     app:cardBackgroundColor="@color/lime_green"
                                     app:cardCornerRadius="16dp"
-                                    app:strokeWidth="0dp"
-                                    app:cardElevation="0dp">
+                                    app:cardElevation="0dp"
+                                    app:strokeWidth="0dp">
 
                                     <TextView
                                         android:layout_width="match_parent"
@@ -216,12 +217,12 @@
                                     android:id="@+id/tabIncome"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_weight="1"
                                     android:layout_marginHorizontal="8dp"
+                                    android:layout_weight="1"
                                     app:cardBackgroundColor="@android:color/transparent"
                                     app:cardCornerRadius="16dp"
-                                    app:strokeWidth="0dp"
-                                    app:cardElevation="0dp">
+                                    app:cardElevation="0dp"
+                                    app:strokeWidth="0dp">
 
                                     <TextView
                                         android:layout_width="match_parent"
@@ -238,12 +239,12 @@
                                     android:id="@+id/tabExpense"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_weight="1"
                                     android:layout_marginStart="8dp"
+                                    android:layout_weight="1"
                                     app:cardBackgroundColor="@android:color/transparent"
                                     app:cardCornerRadius="16dp"
-                                    app:strokeWidth="0dp"
-                                    app:cardElevation="0dp">
+                                    app:cardElevation="0dp"
+                                    app:strokeWidth="0dp">
 
                                     <TextView
                                         android:layout_width="match_parent"
@@ -273,11 +274,11 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:gravity="center"
                                     android:padding="12dp"
                                     android:text="Income Categories"
                                     android:textColor="@color/primary"
                                     android:textSize="16sp"
-                                    android:gravity="center"
                                     android:textStyle="bold" />
                             </FrameLayout>
 
@@ -308,11 +309,11 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:gravity="center"
                                     android:padding="12dp"
                                     android:text="Expense Categories"
                                     android:textColor="@color/primary"
                                     android:textSize="16sp"
-                                    android:gravity="center"
                                     android:textStyle="bold" />
                             </FrameLayout>
 

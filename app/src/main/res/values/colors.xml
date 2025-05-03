@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- main colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="primary">#FF103713</color>
@@ -10,7 +12,7 @@
     <color name="light_green">#FFDFF7E2</color>
     <color name="lime_green">#FF00D09E</color>
     
-    <!-- New colors for transactions -->
+    <!-- colors for transactions -->
     <color name="income_green">#43A047</color>
     <color name="expense_red">#E53935</color>
     <color name="dark_gray">#424242</color>
@@ -26,4 +28,5 @@
     <color name="pin_indicator_filled">#4CAF50</color>
     <color name="pin_error_text">#F44336</color>
     <color name="cooldown_text">#FF9800</color>
+    
 </resources>

@@ -13,7 +13,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:src="@drawable/back"
-        android:contentDescription="Back"
+        android:contentDescription="@string/back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_margin="40dp"/>
@@ -22,7 +22,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Settings"
+        android:text="@string/settings"
         android:textColor="@color/black"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -31,372 +31,499 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btnBack" />
 
-    <!-- Buttons for backup/restore that were missing -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Use ScrollView to make content scrollable -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="24dp"
-        android:background="@drawable/top_rounded_background"
+        android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTitle"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle">
 
-        <TextView
-            android:id="@+id/tvSettingsHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="App Settings"
-            android:textColor="@color/primary"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="24dp"
-            android:orientation="vertical"
+            android:background="@drawable/top_rounded_background"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvSettingsHeader">
+            app:layout_constraintTop_toBottomOf="@+id/tvTitle"
+            app:layout_constraintVertical_bias="0.0">
 
-            <!-- Data Management Section Title -->
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="Data Management"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Currency Selection -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnCurrency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivCurrency"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/money"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvCurrencyTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Currency"
-                    android:textColor="@color/primary"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/tvCurrentCurrency"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivCurrency"
-                    app:layout_constraintTop_toTopOf="@+id/ivCurrency" />
-
-                <TextView
-                    android:id="@+id/tvCurrentCurrency"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="🇺🇸 United States Dollar – USD – $"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="12sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivCurrency"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivCurrency"
-                    app:layout_constraintTop_toBottomOf="@+id/tvCurrencyTitle" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Backup & Restore Section Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
-                android:text="Backup &amp; Restore"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Backup Data Button -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnBackupData"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivBackup"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/backup"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvBackupTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Export Data"
-                    android:textColor="@color/primary"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/tvBackupDescription"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivBackup"
-                    app:layout_constraintTop_toTopOf="@+id/ivBackup" />
-
-                <TextView
-                    android:id="@+id/tvBackupDescription"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Export your transaction data as a backup file"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="12sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivBackup"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivBackup"
-                    app:layout_constraintTop_toBottomOf="@+id/tvBackupTitle" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Restore Data Button -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnRestoreData"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivRestore"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/restore"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvRestoreTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Restore Data"
-                    android:textColor="@color/primary"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/tvRestoreDescription"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivRestore"
-                    app:layout_constraintTop_toTopOf="@+id/ivRestore" />
-
-                <TextView
-                    android:id="@+id/tvRestoreDescription"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Restore your transaction data from a backup file"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="12sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivRestore"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivRestore"
-                    app:layout_constraintTop_toBottomOf="@+id/tvRestoreTitle" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Export to Excel Button -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnExportExcel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivExport"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/excel"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvExportTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Export to Excel"
-                    android:textColor="@color/primary"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/tvExportDescription"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivExport"
-                    app:layout_constraintTop_toTopOf="@+id/ivExport" />
-
-                <TextView
-                    android:id="@+id/tvExportDescription"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Export transactions to an Excel (.xlsx) file"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="12sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivExport"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivExport"
-                    app:layout_constraintTop_toBottomOf="@+id/tvExportTitle" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Appearance Section Title -->
-            <TextView
+                android:id="@+id/tvSettingsHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:layout_marginBottom="16dp"
-                android:text="Appearance"
+                android:text="@string/app_settings"
                 android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Theme Button -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnTheme"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivTheme"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/theme"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Theme"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivTheme"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivTheme"
-                    app:layout_constraintTop_toTopOf="@+id/ivTheme" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Notifications Button -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnNotifications"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/round_button_ripple"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivNotifications"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/circle_green_background"
-                    android:padding="10dp"
-                    android:src="@drawable/notifications"
-                    android:tint="@color/primary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="Notifications"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivNotifications"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivNotifications"
-                    app:layout_constraintTop_toTopOf="@+id/ivNotifications" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <Button
-                android:id="@+id/btnSaveSettings"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
                 android:layout_marginTop="32dp"
-                android:background="@drawable/rounded_button"
-                android:text="Save Settings"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
+                android:layout_marginEnd="24dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvSettingsHeader">
 
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <!-- Data Management Section Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/data_management"
+                    android:textColor="@color/primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Currency Selection -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/btnCurrency"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_button_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivCurrency"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/money"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tint="@color/primary" />
+
+                    <TextView
+                        android:id="@+id/tvCurrencyTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/currency"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toTopOf="@+id/tvCurrentCurrency"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivCurrency"
+                        app:layout_constraintTop_toTopOf="@+id/ivCurrency" />
+
+                    <TextView
+                        android:id="@+id/tvCurrentCurrency"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="🇺🇸 United States Dollar – USD – $"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivCurrency"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivCurrency"
+                        app:layout_constraintTop_toBottomOf="@+id/tvCurrencyTitle" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Backup & Restore Section Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/backup_restore"
+                    android:textColor="@color/primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Backup Data Button -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/btnBackupData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_button_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivBackup"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/backup"
+                        app:tint="@color/primary"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvBackupTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/export_data"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toTopOf="@+id/tvBackupDescription"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivBackup"
+                        app:layout_constraintTop_toTopOf="@+id/ivBackup" />
+
+                    <TextView
+                        android:id="@+id/tvBackupDescription"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/export_data_desc"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivBackup"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivBackup"
+                        app:layout_constraintTop_toBottomOf="@+id/tvBackupTitle" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Restore Data Button -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/btnRestoreData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/round_button_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivRestore"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/restore"
+                        app:tint="@color/primary"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvRestoreTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/restore_data"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toTopOf="@+id/tvRestoreDescription"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivRestore"
+                        app:layout_constraintTop_toTopOf="@+id/ivRestore" />
+
+                    <TextView
+                        android:id="@+id/tvRestoreDescription"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/restore_data_desc"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivRestore"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivRestore"
+                        app:layout_constraintTop_toBottomOf="@+id/tvRestoreTitle" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Export to Excel Button -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/btnExportExcel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/round_button_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivExport"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/excel"
+                        app:tint="@color/primary"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvExportTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/export_excel"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toTopOf="@+id/tvExportDescription"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivExport"
+                        app:layout_constraintTop_toTopOf="@+id/ivExport" />
+
+                    <TextView
+                        android:id="@+id/tvExportDescription"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/export_excel_desc"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivExport"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivExport"
+                        app:layout_constraintTop_toBottomOf="@+id/tvExportTitle" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Appearance Section Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/appearance"
+                    android:textColor="@color/primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Dark Mode Toggle Switch -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/themeToggleContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_button_ripple"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivDarkMode"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/theme"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:tint="@color/primary" />
+
+                    <TextView
+                        android:id="@+id/tvDarkModeLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/dark_mode"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintTop_toTopOf="@+id/ivDarkMode"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivDarkMode"
+                        app:layout_constraintStart_toEndOf="@+id/ivDarkMode"
+                        app:layout_constraintEnd_toStartOf="@+id/switchDarkMode" />
+
+                    <Switch
+                        android:id="@+id/switchDarkMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Notifications Button -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/btnNotifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/round_button_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivNotifications"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/notifications"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tint="@color/primary" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/notifications"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivNotifications"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivNotifications"
+                        app:layout_constraintTop_toTopOf="@+id/ivNotifications" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Daily Reminder Section Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/daily_reminder"
+                    android:textColor="@color/primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Daily Reminder Toggle -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/dailyReminderContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_button_ripple"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivDailyReminder"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/notifications"
+                        app:tint="@color/primary"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvDailyReminderLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/enable_daily_reminder"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintTop_toTopOf="@+id/ivDailyReminder"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivDailyReminder"
+                        app:layout_constraintStart_toEndOf="@+id/ivDailyReminder"
+                        app:layout_constraintEnd_toStartOf="@+id/switchDailyReminder" />
+
+                    <Switch
+                        android:id="@+id/switchDailyReminder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Reminder Time Selection -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/btnReminderTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/round_button_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivReminderTime"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/circle_green_background"
+                        android:padding="10dp"
+                        android:src="@drawable/watch"
+                        app:tint="@color/primary"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvReminderTimeLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/reminder_time"
+                        android:textColor="@color/primary"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toTopOf="@+id/tvReminderTimeValue"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivReminderTime"
+                        app:layout_constraintTop_toTopOf="@+id/ivReminderTime" />
+
+                    <TextView
+                        android:id="@+id/tvReminderTimeValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/reminder_time_default"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/ivReminderTime"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/ivReminderTime"
+                        app:layout_constraintTop_toBottomOf="@+id/tvReminderTimeLabel" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <Button
+                    android:id="@+id/btnSaveSettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:background="@drawable/rounded_button"
+                    android:text="@string/save_settings"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <Button
         android:id="@+id/backupButton"

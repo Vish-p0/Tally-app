@@ -249,10 +249,10 @@
                                     android:layout_width="32dp"
                                     android:layout_height="32dp"
                                     android:src="@drawable/money"
-                                    android:tint="@color/primary"
                                     android:background="@drawable/circle_background"
                                     android:padding="6dp"
-                                    android:contentDescription="Monthly Budget" />
+                                    android:contentDescription="Monthly Budget"
+                                    app:tint="@color/primary" />
 
                                 <TextView
                                     android:layout_width="wrap_content"

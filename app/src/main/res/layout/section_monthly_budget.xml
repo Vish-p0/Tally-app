@@ -47,7 +47,7 @@
                     android:textSize="14sp"
                     android:textColor="@color/primary"/>
                 
-                <!-- Circle Calendar Icon with lime_green background -->
+                <!-- Circle Calendar Icon with lime_orange background -->
                 <FrameLayout
                     android:id="@+id/monthYearCalendarButton"
                     android:layout_width="36dp"
@@ -61,16 +61,16 @@
                         android:layout_width="36dp"
                         android:layout_height="36dp"
                         android:src="@drawable/circle_background"
-                        android:tint="@color/lime_green"
-                        android:contentDescription="Calendar Background"/>
+                        android:contentDescription="Calendar Background"
+                        app:tint="@color/lime_green" />
                         
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_calendar"
-                        android:tint="@color/white"
-                        android:contentDescription="Calendar Icon"/>
+                        android:contentDescription="Calendar Icon"
+                        app:tint="@color/white" />
                 </FrameLayout>
             </LinearLayout>
         </LinearLayout>

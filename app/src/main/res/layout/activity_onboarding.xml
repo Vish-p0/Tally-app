@@ -21,34 +21,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Description Text -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/poppins_bold"
         android:textColor="@color/primary"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:fontFamily="@font/poppins_bold"
-        app:layout_constraintTop_toBottomOf="@id/onboardingImage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.585"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/onboardingImage" />
 
-    <!-- Description Text -->
+    <!-- Dot Indicators -->
     <TextView
         android:id="@+id/descriptionText"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textColor="@color/primary"
-        android:textAlignment="center"
-        android:textSize="16sp"
         android:fontFamily="@font/poppins_regular"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
+        android:textAlignment="center"
+        android:textColor="@color/primary"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.585"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/titleText" />
 
-    <!-- Dot Indicators -->
     <LinearLayout
         android:id="@+id/dotIndicators"
         android:layout_width="wrap_content"

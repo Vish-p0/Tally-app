@@ -458,7 +458,7 @@ class CategoriesFragment : Fragment() {
                     cardView.setCardBackgroundColor(android.graphics.Color.parseColor(categoryColor))
                 } catch (e: Exception) {
                     // Fallback if color parsing fails
-                    cardView.setCardBackgroundColor(resources.getColor(R.color.light_green, null))
+                    cardView.setCardBackgroundColor(resources.getColor(R.color.lime_green, null))
                 }
                 
                 itemView.setOnClickListener { onItemClick(category) }

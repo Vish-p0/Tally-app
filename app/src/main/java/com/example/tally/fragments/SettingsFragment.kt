@@ -20,6 +20,7 @@ import com.example.tally.adapters.CurrencyAdapter
 import com.example.tally.databinding.DialogBackupSelectionBinding
 import com.example.tally.databinding.FragmentSettingsBinding
 import com.example.tally.models.Currency
+import com.example.tally.receivers.DailyReminderReceiver
 import com.example.tally.utils.CurrencyManager
 import com.example.tally.utils.PinManager
 import com.example.tally.viewmodels.FinanceViewModel
@@ -60,12 +61,13 @@ class SettingsFragment : Fragment() {
 
         // Initialize UI with current settings
         updateCurrencyDisplay()
+        initializeDailyReminderUI()
 
         setupClickListeners()
 
         // Save Settings button
         binding.btnSaveSettings.setOnClickListener {
-            Snackbar.make(binding.root, "Settings saved successfully", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, getString(R.string.settings_saved), Snackbar.LENGTH_SHORT).show()
         }
 
         // Observe backup files list
@@ -78,6 +80,18 @@ class SettingsFragment : Fragment() {
     private fun updateCurrencyDisplay() {
         val currentCurrency = currencyManager.getCurrentCurrency()
         binding.tvCurrentCurrency.text = currentCurrency.toString()
+    }
+
+    private fun initializeDailyReminderUI() {
+        // Set initial visibility of reminder time selection based on saved preference
+        val isReminderEnabled = viewModel.isReminderEnabled()
+        binding.switchDailyReminder.isChecked = isReminderEnabled
+        binding.btnReminderTime.visibility = if (isReminderEnabled) View.VISIBLE else View.GONE
+        
+        // Initialize the time display
+        val hour = viewModel.getReminderHour()
+        val minute = viewModel.getReminderMinute()
+        updateReminderTimeDisplay(hour, minute)
     }
 
     private fun setupClickListeners() {
@@ -106,14 +120,19 @@ class SettingsFragment : Fragment() {
             exportTransactionsToExcel()
         }
 
-        // Theme button
-        binding.btnTheme.setOnClickListener {
-            showThemeSelectionDialog()
-        }
-
         // Notifications button
         binding.btnNotifications.setOnClickListener {
             showNotificationSettings()
+        }
+        
+        // Daily Reminder toggle
+        binding.switchDailyReminder.setOnCheckedChangeListener { _, isChecked ->
+            toggleDailyReminder(isChecked)
+        }
+        
+        // Reminder Time selection
+        binding.btnReminderTime.setOnClickListener {
+            showTimePickerDialog()
         }
     }
 
@@ -156,12 +175,12 @@ class SettingsFragment : Fragment() {
 
     private fun showBackupConfirmationDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Backup Data")
-            .setMessage("Do you want to create a backup of your data? This will save all your transactions, categories, and budget information to your device's internal storage.")
-            .setPositiveButton("Backup") { _, _ ->
+            .setTitle(getString(R.string.backup_title))
+            .setMessage(getString(R.string.backup_message))
+            .setPositiveButton(getString(R.string.backup)) { _, _ ->
                 backupData()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -169,7 +188,7 @@ class SettingsFragment : Fragment() {
         val backupFiles = viewModel.backupFiles.value ?: emptyList()
 
         if (backupFiles.isEmpty()) {
-            Toast.makeText(requireContext(), "No backup files found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.no_backups), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -211,7 +230,7 @@ class SettingsFragment : Fragment() {
                 backupDialog?.dismiss()
                 showRestoreConfirmationDialog(fileToRestore)
             } else {
-                Toast.makeText(requireContext(), "Please select a backup file", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.select_backup_file), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -233,7 +252,7 @@ class SettingsFragment : Fragment() {
         val backupFiles = viewModel.backupFiles.value ?: emptyList()
 
         if (backupFiles.isEmpty()) {
-            Toast.makeText(requireContext(), "No backup files found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.no_backups), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -244,38 +263,48 @@ class SettingsFragment : Fragment() {
         }.toTypedArray()
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Select Backup to Restore")
+            .setTitle(getString(R.string.select_backup))
             .setItems(options) { _, which ->
                 val selectedBackup = backupFiles[which].first
                 showRestoreConfirmationDialog(selectedBackup)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     private fun showRestoreConfirmationDialog(backupFile: File? = null) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Restore Data")
-            .setMessage("This will replace all your current data with the selected backup. Are you sure you want to continue?")
-            .setPositiveButton("Restore") { _, _ ->
+            .setTitle(getString(R.string.restore_title))
+            .setMessage(getString(R.string.restore_message))
+            .setPositiveButton(getString(R.string.restore)) { _, _ ->
                 if (backupFile != null) {
                     restoreFromFile(backupFile)
                 } else {
                     restoreData()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     private fun showThemeSelectionDialog() {
-        val themes = arrayOf("Light", "Dark", "System Default")
+        val themes = arrayOf(
+            getString(R.string.light), 
+            getString(R.string.dark), 
+            getString(R.string.system_default)
+        )
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Select Theme")
+            .setTitle(getString(R.string.select_theme))
             .setItems(themes) { _, which ->
                 val themeName = themes[which]
-                Snackbar.make(binding.root, "Theme set to $themeName", Snackbar.LENGTH_SHORT).show()
-                // Implement theme change logic here
+                Snackbar.make(binding.root, getString(R.string.theme_set, themeName), Snackbar.LENGTH_SHORT).show()
+
+                // Apply selected theme
+                when (which) {
+                    0 -> androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO) // Light
+                    1 -> androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) // Dark
+                    2 -> androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) // System Default
+                }
             }
             .show()
     }
@@ -292,11 +321,11 @@ class SettingsFragment : Fragment() {
             // Show success message with a button to share the backup
             val snackbar = Snackbar.make(
                 binding.root,
-                "Backup created successfully",
+                getString(R.string.backup_success),
                 Snackbar.LENGTH_LONG
             )
 
-            snackbar.setAction("Share") {
+            snackbar.setAction(getString(R.string.share)) {
                 // Share the backup file
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.type = "application/json"
@@ -307,7 +336,7 @@ class SettingsFragment : Fragment() {
 
             snackbar.show()
         } else {
-            Toast.makeText(requireContext(), "Backup failed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.backup_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -316,11 +345,11 @@ class SettingsFragment : Fragment() {
 
         if (success) {
             // Show success message and refresh data
-            Snackbar.make(binding.root, "Data restored successfully", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, getString(R.string.restore_success), Snackbar.LENGTH_SHORT).show()
             viewModel.refreshData()
             updateCurrencyDisplay()
         } else {
-            Toast.makeText(requireContext(), "Restore failed. No valid backup file found.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -329,18 +358,18 @@ class SettingsFragment : Fragment() {
 
         if (success) {
             // Show success message and refresh data
-            Snackbar.make(binding.root, "Data restored successfully", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, getString(R.string.restore_success), Snackbar.LENGTH_SHORT).show()
             viewModel.refreshData()
             updateCurrencyDisplay()
         } else {
-            Toast.makeText(requireContext(), "Restore failed. Invalid backup file.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.restore_invalid), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun exportTransactionsToExcel() {
         val transactions = viewModel.getAllTransactions()
         if (transactions.isEmpty()) {
-            Toast.makeText(requireContext(), "No transactions to export", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.no_transactions), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -391,5 +420,125 @@ class SettingsFragment : Fragment() {
         backupDialog?.dismiss()
         backupDialog = null
         _binding = null
+    }
+    
+    // Daily Reminder Functions
+    
+    private fun toggleDailyReminder(enabled: Boolean) {
+        val reminderTimeContainer = binding.btnReminderTime
+        viewModel.setReminderEnabled(enabled)
+        
+        if (enabled) {
+            reminderTimeContainer.visibility = View.VISIBLE
+            // Get saved time or use default
+            val savedHour = viewModel.getReminderHour()
+            val savedMinute = viewModel.getReminderMinute()
+            updateReminderTimeDisplay(savedHour, savedMinute)
+            scheduleReminder(savedHour, savedMinute)
+        } else {
+            reminderTimeContainer.visibility = View.GONE
+            cancelReminder()
+        }
+    }
+    
+    private fun showTimePickerDialog() {
+        val currentHour = viewModel.getReminderHour()
+        val currentMinute = viewModel.getReminderMinute()
+        
+        val timePickerDialog = android.app.TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minute ->
+                updateReminderTimeDisplay(hourOfDay, minute)
+                viewModel.saveReminderTime(hourOfDay, minute)
+                scheduleReminder(hourOfDay, minute)
+            },
+            currentHour,
+            currentMinute,
+            false
+        )
+        
+        timePickerDialog.show()
+    }
+    
+    private fun updateReminderTimeDisplay(hour: Int, minute: Int) {
+        val timeFormat = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, hour)
+        calendar.set(java.util.Calendar.MINUTE, minute)
+        
+        binding.tvReminderTimeValue.text = timeFormat.format(calendar.time)
+    }
+    
+    private fun scheduleReminder(hour: Int, minute: Int) {
+        // Create a notification channel (required for Android 8.0+)
+        createNotificationChannel()
+        
+        // Schedule daily alarm for reminder
+        val alarmManager = requireContext().getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+        val reminderIntent = android.content.Intent(requireContext(), DailyReminderReceiver::class.java)
+        
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            requireContext(),
+            0,
+            reminderIntent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        // Set the alarm to start at specified time
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, hour)
+        calendar.set(java.util.Calendar.MINUTE, minute)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        
+        // If the time is already passed for today, schedule for tomorrow
+        if (calendar.timeInMillis <= System.currentTimeMillis()) {
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+        }
+        
+        // Schedule the alarm to repeat daily
+        alarmManager.setRepeating(
+            android.app.AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            android.app.AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
+        
+        Snackbar.make(binding.root, getString(R.string.daily_reminder_set, binding.tvReminderTimeValue.text), Snackbar.LENGTH_SHORT).show()
+    }
+    
+    private fun cancelReminder() {
+        val alarmManager = requireContext().getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+        val reminderIntent = android.content.Intent(requireContext(), DailyReminderReceiver::class.java)
+        
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            requireContext(),
+            0,
+            reminderIntent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        // Cancel the alarm
+        alarmManager.cancel(pendingIntent)
+        
+        Snackbar.make(binding.root, getString(R.string.daily_reminder_cancelled), Snackbar.LENGTH_SHORT).show()
+    }
+    
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channelId = "daily_reminder_channel"
+            val channelName = "Daily Reminder"
+            val description = "Channel for daily income/expense entry reminders"
+            val importance = android.app.NotificationManager.IMPORTANCE_HIGH
+            
+            val channel = android.app.NotificationChannel(channelId, channelName, importance).apply {
+                this.description = description
+                enableLights(true)
+                lightColor = android.graphics.Color.GREEN
+                enableVibration(true)
+            }
+            
+            val notificationManager = requireContext().getSystemService(android.app.NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }

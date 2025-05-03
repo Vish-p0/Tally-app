@@ -414,6 +414,37 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     fun getAllTransactions(): List<Transaction> {
         return _transactions.value ?: emptyList()
     }
+    
+    // Daily Reminder Methods
+    fun saveReminderTime(hour: Int, minute: Int) {
+        val prefs = getApplication<Application>().getSharedPreferences("tally_preferences", Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putInt("reminder_hour", hour)
+            putInt("reminder_minute", minute)
+            putBoolean("reminder_enabled", true)
+            apply()
+        }
+    }
+    
+    fun getReminderHour(): Int {
+        val prefs = getApplication<Application>().getSharedPreferences("tally_preferences", Context.MODE_PRIVATE)
+        return prefs.getInt("reminder_hour", 20) // Default: 8 PM
+    }
+    
+    fun getReminderMinute(): Int {
+        val prefs = getApplication<Application>().getSharedPreferences("tally_preferences", Context.MODE_PRIVATE)
+        return prefs.getInt("reminder_minute", 0) // Default: 00
+    }
+    
+    fun isReminderEnabled(): Boolean {
+        val prefs = getApplication<Application>().getSharedPreferences("tally_preferences", Context.MODE_PRIVATE)
+        return prefs.getBoolean("reminder_enabled", false)
+    }
+    
+    fun setReminderEnabled(enabled: Boolean) {
+        val prefs = getApplication<Application>().getSharedPreferences("tally_preferences", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("reminder_enabled", enabled).apply()
+    }
 
     companion object {
         class Factory(private val application: Application) : ViewModelProvider.Factory {
